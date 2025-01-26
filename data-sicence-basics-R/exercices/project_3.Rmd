@@ -1,0 +1,324 @@
+---
+title: "PAC_3 software analisi de dades"
+author: "Raúl Pérez Prats"
+date: "2023-12-06"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Models i machine learning
+
+Carreguem les dades sobre les que treballarem:
+
+```{r}
+
+index = read.table("https://bit.ly/3gzYaUP", header = TRUE)
+
+```
+
+### Exercici 1
+
+#### A)
+
+```{r}
+
+
+plot(index$Brth15to17,index$PovPct,main="Scatterplot Pobresa vs Naixements", 
+      xlab="Naixements entre els 15 i els 17 anys", ylab="Index pobresa ",lty = 1)
+
+```
+
+Podem observar que el núvol de punts tot i tenir una tendència a augmentar l'índex de pobresa amb el major nombre de naixements entre els 15 i els 17 es dispers i presenta molts outliers.
+
+#### B)
+
+```{r}
+
+model = lm(PovPct~Brth15to17,data = index) #Create a linear regression with two variables
+summary(model) #Review the results
+
+plot(index$Brth15to17,index$PovPct,main="Scatterplot Pobresa vs Naixements", 
+      xlab="Naixements entre els 15 i els 17 anys", ylab="Index pobresa ",lty = 1)
+
+abline(model, col="red") # regression line (y~x)
+
+```
+
+L'ajust del model es de 0.52 segons la R^2 ajustada. Aquest coeficient indica que el model de regressió linial s'ajusta lleugerament a les dades i suggereix que aquestes tenen una tendència lleugerament positiva, lo qual indica que a major nombre de naixements entre els 15 i els 17 anys en una zona, major son els índex de pobresa. Tot i així el model segueix estant lluny de obtenir un coeficient de correlació proper a 1, on si que podriem afirmar de forma significativa i indiscutible aquesta correlació
+
+#### C)
+
+Podem observar que el model de regressió lineal no s'ajusta completament a aquest tipus de dades si mirem els errors residuals que presenta, ja que el mínim es de -5.8 i el maxim es de 6.15, son errors elevats que ens permeten veure el desajust de la regressió lineal.
+
+Per una altra banda obtenim p-valors significatius per a els coeficients que hem triat per a realiztar el model de regressió lineal, per tant, tot i no ajustar-se completament a una correlació positiva, els paràmetres utilitzats son els adecuats. 
+
+Podria millorar-se l'ajust de la regressió lineal augmentant el nombre de les dades mitjançant mostrejos representatius, per tal d'aconseguir més potència estadística i així reduir el pes dels outliers en el model final.
+
+### Exercici 2
+
+#### A)
+
+```{r}
+
+T1<-rep(c('T1'),times=6)
+T2<-rep(c('T2'),times=6)
+T3<-rep(c('T3'),times=6)
+T4<-rep(c('T4'),times=6)
+
+T1_v<-c(64,72,68,77,56,95)
+T2_v<-c(78,91,97,82,85,77)
+T3_v<-c(75,93,78,71,63,76)
+T4_v<-c(55,66,49,64,70,68)
+
+Type <- c(T1,T2,T3,T4)
+Fat <- c(T1_v,T2_v,T3_v,T4_v)
+
+donuts_df <- data.frame(Type,Fat)
+print(donuts_df)
+
+```
+
+Dataframe amb una columna 'Type' on estan indicats els tipus de donuts de l'experiment i amb una columna 'Fat' on estan indicats els nivells de greix absorbits per cada repetició de l'experiment.
+
+#### B)
+
+```{r}
+library(ggplot2)
+
+# Sumem valors dels diferents grups
+summed_data <- aggregate(Fat ~ Type, data = donuts_df, sum)
+
+# Creació bar plot
+ggplot(summed_data, aes(x = Type, y = Fat, fill = Type)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Comparació dels 4 grups",
+       x = "Grup",
+       y = "Total Fat") +
+  theme_minimal()
+
+```
+
+A simple vista es pot observar que el grup T2 es el que absorbeix més lípids, seguit del grup T3. Aquest gràfic només ens pot donar un incís intuitiu de quines son les diferències en quant al valor absolut de les quantitats de lípids absorbides en cada grup, per saber si aquestes diferències son significatives haurem de realitzar un ANOVA.
+
+#### C)
+
+```{r}
+
+anova_donuts<-aov(Fat~Type,data=donuts_df) 
+summary(anova_donuts)
+
+```
+Com que el p-valor de 0.00688 < 0.05 si que existeixen diferències significatives entre els grups.
+
+Tenint en compte el gràfic de barres de l'apartat B els grups que presenten més diferències son el T2 i el T4.
+
+Per a determinar de forma estadísticament significativa quins son els grups que presenten més diferències s'haurien d'aplicar tests de comparacions múltiples i correccions com la Correcció de Holm y TukeyHSD
+
+```{r}
+
+pairwise.t.test(x=donuts_df$Fat,g=donuts_df$Type,p.adjust.method ="holm",pool.sd=TRUE,paired=FALSE,alternative="two.sided")
+
+```
+Aquest test confirma la hipòtesi de que les diferències més significatives estan entre el T2 i el T4, ja que son els únics grups que presenten un p-valor significatiu en el test de comparacions múltiples.
+
+#### D)
+
+```{r}
+plot(anova_donuts, which = 1)
+plot(anova_donuts, which = 2)
+plot(anova_donuts, which = 3)
+plot(anova_donuts, which = 4)
+
+
+```
+En general tots els gràfics s'ajusten a un model anova tot i que en alguns casos com en el gràfic de Scale-Location, on la linea no es del tot plana, i en el de Q-Q Residuals s'observen alguns outliers que fan que el model no s'ajusti perfectament a una distribució normal. 
+
+El més recomanable per a afirmar si es correcte utilitzar un ANOVA en aquestes dades es realitzar un test d'homoscedasticitat i un test per comprobar la normalitat de les dades.
+
+```{r}
+require(nortest)
+
+#Test de normalidad
+normalidad <- by(data=donuts_df,INDICES = donuts_df$Fat,FUN=function(x){shapiro.test(donuts_df$Fat)})# Se cumple ya que p-value > 0.05
+#Test de homocedasticidad
+homocedasticitat <-fligner.test(donuts_df$Fat~donuts_df$Type,donuts_df)
+
+print(normalidad[1])
+print(homocedasticitat)
+
+```
+
+Tant el test per a comprobar la distribució normal de les nostres dades (Shapiro-Wilk) com el test d'homocedasticitat (Fligner-Killeen) tenen p-valors > 0.05 per tant s'accepta l'hipotesi nula en els dos test que afirma que les dades segueixen una distribució normal i son homocedàstiques respectivament.
+
+### Exercici 3
+
+#### A)
+
+```{r}
+library(palmerpenguins)
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(GGally)
+library(Hmisc)
+library(corrplot)
+library(PerformanceAnalytics)
+#data("penguins")
+
+numeric_penguins <- penguins[, sapply(penguins, is.numeric)]
+
+numeric_penguins <- na.omit(numeric_penguins)
+
+
+cor(numeric_penguins)
+
+rcorr(as.matrix(numeric_penguins)) # obtenim matriu de correlacions i a baix matriu de correlacions amb p-value, la majoria dels p-value son 0.000 (molt petits) per tant es significatiu
+
+chart.Correlation(numeric_penguins, histogram = F, pch = 19)
+
+```
+
+Podem veure que les dades que presenten una major correlació son la massa corporal i la llargada de les ales amb una correlació de 0.87, seguit de la llargada del bec i la llargada de les ales amb una correlació de 0.66.
+
+Si mirem als p-valors d'aquestes correlacions podem veure que son inferiors a 0.05 i per tant son estadísticament significatives.
+
+#### B)
+
+```{r}
+library(cluster)
+
+d_pen<-dist(numeric_penguins,method="euclidean") 
+
+hc_pen<-hclust(d_pen,method="complete")
+
+#plot(hc_pen,cex=0.6,hang=-1, main ="Dendograma de clúster") ##representamos el dendograma
+
+hc_div<-diana(numeric_penguins) ##calculamos los clústeres jerárquicos
+cat("Coeficient de divisió:",hc_div$dc) ##calculamos el coeficiente de división
+
+pltree(hc_div,hang=-1,cex=0.6)
+rect.hclust(hc_div,k=10,border=2:10)
+```
+Veiem que el coeficient de divisió es molt elevat, indica una agrupació robusta.
+
+Veiem que en el dendograma tenim diferenciats 10 grans grups.
+
+#### C)
+
+```{r}
+
+
+# Seleccionem només les variables numèriques
+numeric_penguins <- penguins[, sapply(penguins, is.numeric)]
+numeric_penguins <- na.omit(numeric_penguins)
+# Realitzem l'agrupament k-means amb k = 3
+kmeans_result <- kmeans(numeric_penguins, centers = 3, nstart = 20)
+
+# Afegeim la informació de grup al conjunt de dades original
+#penguins <- na.omit(penguins)
+penguins$cluster_kmeans <- as.factor(kmeans_result$cluster)
+
+# Mostrem els resultats de l'agrupament
+print(kmeans_result)
+
+# Taula de les espècies de pingüins per a cada grup
+table(penguins$species, penguins$cluster_kmeans)
+
+
+```
+Podem veure que els pinguins mes grans son aquells que cauen dintre del cluster 1
+
+Els clústers indiquen que es poden agrupar les diferents especies de pingüins segons els seus paràmetres morfomètrics. La major part de la variabilitat de les dades està explicada per aquests clústers, ja que obtenim un percentatge de variabilitat explicada (sum of squares by cluster) del 86.8% que indica una separació i agrupació per clústers robusta.
+
+Les especies d'Adelie i Chinstrap estan majoritàriament al Clúster 3, mentre que els Gentoo es distribueixen principalment entre els Clústers 1 i 2.
+
+## Aplicacions amb R i Rstudio
+
+### Exercici 4
+
+#### B)
+
+```{r}
+library("ggmap")
+#  Loading required package: ggplot2
+#  ℹ Google's Terms of Service: <https://mapsplatform.google.com>
+#    Stadia Maps' Terms of Service: <https://stadiamaps.com/terms-of-service/>
+#    OpenStreetMap's Tile Usage Policy: <https://operations.osmfoundation.org/policies/tiles/>
+#  ℹ Please cite ggmap if you use it! Use `citation("ggmap")` for details.
+key <- '0432f236-415b-44f8-9f48-5e69f7692261'
+
+register_stadiamaps(key, write = FALSE)
+
+stadiamaps_key()
+
+has_stadiamaps_key()
+
+library("dplyr", warn.conflicts = FALSE)
+library("forcats")
+
+# define helper
+`%notin%` <- function(lhs, rhs) !(lhs %in% rhs)
+
+# reduce crime to violent crimes in downtown houston
+violent_crimes <- crime |> 
+  filter(
+    offense %notin% c("auto theft", "theft", "burglary"),
+    between(lon, -95.39681, -95.34188),
+    between(lat, 29.73631, 29.78400)
+  ) |> 
+  mutate(
+    offense = fct_drop(offense),
+    offense = fct_relevel(offense, c("robbery", "aggravated assault", "rape", "murder"))
+  )
+
+# use qmplot to make a scatterplot on a map
+qmplot(lon, lat, data = violent_crimes, maptype = "stamen_toner_lite", color = I("red"))
+```
+```{r}
+library("ggmap")
+library("patchwork")
+library("ggdensity")
+library("geomtextpath")
+
+bbox <- make_bbox(lon, lat, data = violent_crimes)
+map <- get_stadiamap( bbox = bbox, maptype = "stamen_toner_lite", zoom = 14 )
+#  ℹ © Stadia Maps © Stamen Design © OpenMapTiles © OpenStreetMap contributors.
+ggmap(map)
+
+robberies <- violent_crimes |> filter(offense == "robbery")
+
+points_map <- ggmap(map) + geom_point(data = robberies, color = "red")
+
+# warnings disabled
+hdr_map <- ggmap(map) + 
+  geom_hdr(
+    aes(lon, lat, fill = after_stat(probs)), data = robberies,
+    alpha = .5
+  ) +
+  geomtextpath::geom_labeldensity2d(
+    aes(lon, lat, level = after_stat(probs)),
+    data = robberies, stat = "hdr_lines", size = 3, boxcolour = NA
+  ) +
+  scale_fill_brewer(palette = "YlOrRd") +
+  theme(legend.position = "none")
+
+(points_map + hdr_map) & 
+  theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank())
+
+
+#####################
+ggmap(map, darken = .3) +
+  geom_point(
+    aes(lon, lat), data = violent_crimes, 
+    shape = 21, color = "gray25", fill = "yellow"
+  ) +
+  facet_wrap(~ offense, nrow = 1) +
+  theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank())
+```
+El paquet ggmap és utilitzat per visualitzar dades geoespacials i mapes amb ggplot2, un paquet de visualització popular a R. És especialment útil quan es treballa amb dades que tenen una dimensió geogràfica, com ara mostres recollides en ubicacions específiques o quan es vol superposar dades en un mapa.
+
+Un exemple d'aplicació en bioinformàtica/bioestadística és el seguiment de la distribució geogràfica de resultats d'estudis epidemiològics. Per exemple, durant la pandèmia del covid-19 es podria haber utilitat ggmap per a visualitzar distribució geogràfica dels infectats i generar mapes de gradients d'infecció per a identificar els focus amb major prevalència de la malaltia en determinades regions. Aquesta visualització pot ser molt útil per identificar els patrons geogràfics de la Covid-19.
+

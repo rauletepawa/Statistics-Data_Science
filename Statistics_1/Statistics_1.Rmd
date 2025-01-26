@@ -1,0 +1,270 @@
+---
+title: "PAC_1_inferencia_estadística"
+author: "Raul Perez Prats"
+date: "2023-11-18"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio 1
+
+### A)
+
+El gráfico A es el correcto porque todas sus probabilidades suman un total de 1, a diferencia del gráfico B que la suma de sus proabalilidades es igual a 0.9
+
+#### a)
+
+0.2
+
+#### b)
+
+0.2+0.35+0.15+0.1 = 0.8
+
+#### c)
+
+0.15+0.2 = 0.35
+
+#### d)
+
+0.35/(0.2+0.35+0.15+0.1) = 0.4375
+
+
+### B)
+
+El gráfico A es el correcto porque todas sus probabilidad acumulada es igual a 1, a diferencia del gráfico B que su probabilidad acumulada es igual a 1.1
+
+#### a)
+
+En una distribución continua no se puede determinar la probabilidad de un único número.
+
+#### b)
+
+La probabilidad de que y sea menor que 250 se enuentra en el límite de y tendiendo a 250 por la izquierda, que se aproxima a 0.89 periódico.
+
+#### c)
+
+0.9-0.4 = 0.5
+
+#### d) 
+
+0.5/0.9 = 0.55556
+
+
+
+## Ejercicio 2
+
+#### a) ¿Cuál es la probabilidad de que un hipertenso esté tratado adecuadamente ( toma tratamiento correcto y cumple las pautas)?
+
+```{r }
+prob_tratado <- 0.5
+prob_tratado_adecuadamente <- 0.6
+prob_cumple_pautas <- 0.8
+respuesta <- prob_tratado*prob_tratado_adecuadamente*prob_cumple_pautas
+cat("La probabilidad de que un hipertenso esté tratado adecuadamente es de ", respuesta)
+```
+
+#### b) ¿Cuál es la probabilidad de que de 10 hipertensos al menos el 50% este tratado adecuadamente?
+
+Para resolver esta cuestión aplicaremos usaremos una distribución binomial
+
+```{r}
+
+x <- 5 # numero de sucesos exitosos
+size <- 10 # numero de ensayos
+prob <- 0.5 # probabilidad de suceso exitoso
+
+resultado <- dbinom(x,size,prob,log = FALSE)
+
+cat("La probabilidad de que de 10 hipertensos al menos la mitad esté tratado adecuadamente es ", resultado )
+```
+#### c) ¿Cuál es la probabilidad de que más de 7 de 10 hipertensos conozcan que lo son?
+
+Para resolver esta cuestión volveremos a usar una distribución binomial
+
+La probabilidad de que un hipertenso sea consciente de su patología es del 50%
+
+```{r} 
+
+size <- 10 # numero de ensayos
+prob <- 0.5 # probabilidad de suceso exitoso
+
+resultado <- sum(dbinom(8:10, size, prob)) # tambe 1-pbinom(7, size, prob)
+
+cat("La probabilidad de que más de 7 de cada 10 hipertensos sepan que padecen esta patología es de ", resultado )
+
+
+```
+
+#### d) Si la mortalidad en los hipertensos no tratados adecuadamente es del 10% y sabiendo que la mortalidad se reduce un 20% si el tratamiento es correcto. ¿Cuál es la probabilidad de muerte (pm) de todos los hipertensos en la población?
+
+```{r}
+prob_no_tratado <- 0.5
+prob_tratado <- 0.5
+prob_trat_correcto <- 0.6
+prob_trat_incorrecto <- 0.4
+prob_cumplir_trat <- 0.8
+prob_no_cumplir_trat <- 0.2
+prob_morir_trat_correcto <- 0.08 # 80% de 0.1
+prob_morir_trat_incorrecto <- 0.1
+
+prob_muerte_hipertensos <- prob_no_tratado*prob_morir_trat_incorrecto  +
+                           prob_tratado*prob_trat_correcto*prob_no_cumplir_trat*prob_morir_trat_incorrecto+
+                           prob_tratado*prob_trat_correcto*prob_cumplir_trat*prob_morir_trat_correcto+
+                           prob_tratado*prob_trat_incorrecto*prob_morir_trat_incorrecto
+
+cat("La probabilidad de muerte de todos los hipertensos en la población es de ", prob_muerte_hipertensos)
+```
+#### e) Genera una muestra aleatoria de 10 hipertensos asumiendo que en la población la mortalidad es la calculada en el apartado d).Estima la probabilidad de muerte y su intervalo de confianza al 95% a partir de la muestra extraída. Interpreta los resultados.
+
+Generamos una muestra aleatoria con 10 hipertensos con la probabilidad de muerte de 0.0952, a partir de esta muestra volvemos a caluclar la probabilidad de muerte, a partir de esta muestra y su probabilidad de muerte calculamos los intervalos de confianza y graficamos la distribución binomial ajustada por MLE.
+
+
+```{r}
+
+set.seed(123)
+
+muestra_aleatoria <- rbinom(10, size = 1, prob = 0.0952)
+
+count_ones <- sum(muestra_aleatoria == 1)
+count_total <- sum(muestra_aleatoria == 0) + count_ones
+pm <- count_ones/count_total
+
+#intervalos de confianza -> no ho podem fer aixi perque ens demana de la mostra extreta a partir d'aquesta distribució 
+#intervalo_confianza <- qbinom(c(0.025,0.975),10,0.0952)
+
+cat("La muestra aleatoria es  ", muestra_aleatoria,"\n")
+
+cat("La probabilidad de muerte en esta muestra es", pm)
+#Representación gráfica de la distribución
+
+RandomBinomMLE = function(n,prob){
+  x = rbinom(n,1,prob)
+  p = length(x[x==1])/n
+  q = qbinom(c(0.025,0.975),n,p)
+  plot(1:n,dbinom(1:n,n,p),type='h',xlab="number of deaths",ylab="probability",
+       main= paste("BINOMIAL DISTRIBUTION, n = ",n,", p = ",p))
+  cat("\n")
+  print(paste("IC(95%) = ",q[1],"-",q[2])) # probabilitat estimada a partir del mostreig
+}
+
+RandomBinomMLE(10,0.0952)
+
+
+```
+Vemos que todo y haver creado una muestra con una pm = 0.0952 al ser una muestra con pocos individuos la pm varía, y toma un valor de 0.2. La distribución tiene una clara forma de binomial.
+
+#### f) Repite el ejercicio anterior, pero con una muestra de 500 hipertensos . Interpreta los resultados.
+
+```{r}
+
+set.seed(123)
+
+muestra_aleatoria <- rbinom(500, size = 1, prob = 0.0952)
+
+count_ones <- sum(muestra_aleatoria == 1)
+count_total <- sum(muestra_aleatoria == 0) + count_ones
+pm <- count_ones/count_total
+
+cat("La muestra aleatoria es  ", muestra_aleatoria,"\n")
+cat(" La probabilidad de muerte es",pm)
+
+#Representación gráfica de la distribución
+
+
+RandomBinomMLE(500,0.0952)
+
+
+
+
+```
+En este caso, al tomar una muestra más grande la pm de la muestra (0.8) se aproxima más al valor poblacional (0.0952) y la curva que describe la distribución binomial parece converger a una distribución normal a medida que aumentamos el tamaño de la muestra.
+
+#### g) Si en lugar de 1 muestra se extrajeran 1000 muestras y se estimara la probabilidad de muerte y sus intervalos de confianza de cada muestra . En cuantos intervalos de los calculados se espera que esté incluida pm (verdadera probabilidad de muerte en la población) (Nota se trata de una pregunta teórica)
+
+Si se extrajeran 1000 muestras de 500 individuos y se estimara la probabilidad de muerte y sus intervalos de confianza, esperariamos encontrar incluida la pm en 950 de éstos 1000 intervalos, ya que el intervalo de confianza del 95% indica que generando un número infinito de intervalos de confianza en infinitas muestras, el 95% de éstos intervalos contendrán el valor buscado (pm) en su rango.
+
+
+## Ejercicio 3
+
+#### a) ¿Cuál es el porcentaje de hipertensos en esta población?.
+
+
+```{r}
+
+probability_superior_140 <- 1- pnorm(140, mean = 124, sd = 10)
+
+cat("La probabilidad de tener una tension arterial sistolica superior a 140mmHg es de", probability_superior_140)
+```
+
+### b) ¿Cuál es el valor de corte de tas que dejaría sólo al 5% de hipertensos en esta población?
+
+```{r}
+
+valor_5_por_cien <- qnorm(0.995, mean = 124, sd = 10)
+
+cat("El valor de corte de TAS qe dejaría sólo al 5% de hipertensos en esta población es", valor_5_por_cien)
+
+```
+#### c) Extrae una muestra de 50 personas de la población y estima la media de la tas y su intervalo de confianza al 99%
+
+```{r}
+
+set.seed(123)
+muestra_50 <- rnorm(50, mean = 125, sd = 10 )
+
+media_muestral <- mean(muestra_50)
+standard_deviation <- sd(muestra_50)
+
+#Estimación del intervalo de confianza
+
+intervalo_confi <- qnorm(c(0.0005,0.9995), mean = media_muestral, sd = standard_deviation)
+
+cat("La media de la TAS es", media_muestral,"mmHg","con un intervalo de confianza 99% de", "(",intervalo_confi[1],",",intervalo_confi[2],")")
+
+# Plot the normal distribution with confidence intervals
+
+minim_tensio <- min(muestra_50)
+maxim_tensio <- max(muestra_50)
+
+x_values <- minim_tensio:maxim_tensio
+
+# Calculate the probability density function (PDF) for each value in the sample
+y_values <- dnorm(x_values, mean = media_muestral, sd = standard_deviation)
+
+# Plot the normal distribution
+plot(x_values, y_values, type = 'l', xlab = "Tension cistolica", ylab = "Likelyhood",
+     main = paste("NORMAL DISTRIBUTION"))
+```
+
+#### d) ¿Qué porcentaje de sujetos de la muestra se clasificarían como hipertensos? Justifica porqué este porcentaje es diferente del apartado a
+
+```{r}
+
+count_hipertensos <- sum(muestra_50 > 140)
+porcentaje_hipertensos <- (count_hipertensos/length(muestra_50))*100
+
+cat("Un",porcentaje_hipertensos ,"% personas con valors de hipertension superiores a 140 en la muestra")
+
+```
+#### e) ¿Qué tamaño muestral sería el necesario para obtener un intervalo de confianza al 99% con un error máximo deseable de 2mmHg?
+
+Sabemos que para calcular el error de un intérvalo de confianza: E = z * sd/√n
+
+```{r}
+
+E <- 2
+z <- 2.58
+sd <- 10
+
+#aislamos n
+
+n<- (z*sd/E)^2
+
+cat("El tamaño muestral necesario para un intervalo de confianza del 99% con un error de 2mmHg es:",ceiling(n))
+
+```

@@ -1,0 +1,228 @@
+---
+title: "perez_prats_Raul_SAD_PAC2"
+author: "Raul Perez Prats"
+date: "2023-11-19"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Secció 1. Funcions, expressions condicionals i bucles.
+
+#### 1.1. Sigueu 𝑥 l'edat d'una persona. Escriu una funció que: (a) li afegeix 1 a 𝑥 si 𝑥 és diferent de 10; (b) li sumi 2 a 𝑥 a la resta de casos. Prova la teva funció amb x=10 i x=25. (1 punt)
+
+
+```{r}
+
+
+modificar_edad <- function(x) {
+  if (x!= 10){
+    edad_modificada <- x+1
+  }else{
+   edad_modificada <- x+2
+  }
+  
+  return(edad_modificada)
+}
+
+cat("Prova amb x = 10:", modificar_edad(10))
+
+cat("Prova amb x = 25:", modificar_edad(25))
+
+
+```
+
+#### 1.2. Considerem que una persona és jove si té entre 0-18 anys, adult si té entre 19-65 anys i ancià si té més de 66 anys. Utilitzant la comanda "if" escriu una funció que indiqui si una persona és jove, adulta o anciana. Prova la teva funció per a l'edat de 13, 55 i 70 anys. (1 punt)
+
+```{r}
+clasificar_edad <- function(x) {
+  if (x<= 18){
+    edad <- "Jove"
+  }else if (x >=19 && x<=65){
+   edad <- "Adult"
+  }else{
+    edad <- "Ancià"
+  }
+  return(edad)
+}
+
+cat("La edat de 13 correspon a",clasificar_edad(13))
+cat("La edat de 55 correspon a", clasificar_edad(55))
+cat("La edat de 70 correspon a", clasificar_edad(70))
+
+
+```
+
+#### 1.3. En aquest exercici utilitzarem el dataset "dat1" i l'ordre "for". Escriu un codi que afegeixi una columna a dat1 on hi hagi un 0 (si l'alumne no ha aprovat) o un 1 (si l'alumne ha aprovat). (1.5 punts)
+
+Utilitzaré un Dataset sintétic, ja que no he trobat el "dat1" als recursos per a l'aprenentatge del lab 3 i 4. Més companys han tingut el mateix problema i ho hem notificat al fòrum
+
+```{r}
+nota <- c("aprobat","suspés")
+llista_gran <- c(nota, rep("aprobat", 5), rep("suspes", 3))
+
+df_notes <- data.frame(Notes = llista_gran)
+
+columna_binaria <- numeric(nrow(df_notes))
+
+
+for (i in seq_along(df_notes$Notes)) {
+  if (df_notes$Notes[i] == "aprobat"){
+    columna_binaria[i] <- 1
+  }else{
+    columna_binaria[i] <- 0
+  }
+}
+df_notes$binari <- columna_binaria
+
+df_notes
+```
+
+#### 1.4. El preu de la farina puja 0,05 cada any. Partim que la farina aquest any costa 2,35 euros. Escriu una funció que torni el preu de la farina des d'aquest any fins que el preu sigui més gran que X euros. Utilitza la comanda "while". Prova la teva funció amb X=4. (1 punt)
+
+```{r}
+
+preu_farina <- function(precio,x) {
+  lista_precio <- list(precio)
+  while (precio < x) {
+    precio <- precio+0.05
+    lista_precio <- append(lista_precio,precio)
+  }
+  return(lista_precio)
+}
+
+preus <- preu_farina(2.35,4)
+
+cat("La llista de preus de la farina es: ",paste(preus, collapse = ", "))
+```
+
+## Secció 2. Simulació.
+
+#### 2.1. Executa "set.seed(154)" perquè les simulacions que facis siguin reproduïbles. D'una normal amb mitjana 0 i desviació 1, simula 1000 valors, després 100 valors i després 10 valors. Dibuixa un histograma de cada simulació. Representa els tres histogrames junts (un al costat d'un altre), què explica la diferència que hi ha entre els tres histogrames? (1.5 punt)
+
+```{r}
+
+random_normal <- function(n){
+  set.seed(154)
+
+  x <- rnorm(n, mean = 0, sd = 1)
+  
+  x2 <- seq(min(x), max(x), length = n)
+  
+  # Corva normal
+  fun <- dnorm(x2, mean = mean(x), sd = sd(x))
+  
+  # Histograma
+  hist(x, prob = TRUE, col = "white",
+       ylim = c(0, max(fun)),
+       main = "Histogram with normal curve")
+  lines(x2, fun, col = 2, lwd = 2)
+}
+
+par(mfrow = c(1, 3)) #Posem els 3 grafics junts
+random_normal(1000)
+random_normal(100)
+random_normal(10)
+
+```
+
+A mesura que disminueix el nombre de valors de la mostra l'histograma de les simulacions va allunyant-se més de la distribució normal ja que en nombres mostrals més petits els valors outliers tenen més pes que els valors habituals i poden desestabilitzar la distribució. Per això la primera simulació amb 1000 individus té un ajust quasi perfecte a una distribució normal (mean= 0, sd = 1) i a la última simulació amb 10 individus no podriem determinar si aquesta distribució pertany a una normal.
+
+#### 2.2. La teoria diu que si 𝑥1 segueix una binomial amb paràmetre 𝑛1 i 𝑝; 𝑥2 segueix una binomial amb paràmetre 𝑛2 i 𝑝; 𝑥3 segueix una binomial amb paràmetre 𝑛3 i 𝑝. Aleshores 𝑥1 + 𝑥2 + 𝑥3 segueix una binomial amb paràmetre 𝑛1 + 𝑛2 + 𝑛3 i 𝑝. Per comprovar-ho: (a)executa "set.seed(543)"; (b)simula 100000 valors de la binomial amb paràmetre n=50 i p=0.3; (c)simula 100000 valors de la binomial amb paràmetre n=70 i p=0.3; (d)simula 100000 valors de la binomial amb paràmetre n=80 i p=0.3; (e) suma les tres simulacions; (f) simula 100.000 valors d'una binomial amb n=80+70+50 i p=0.3; (g) a la mateixa gràfica dibuixa la funció de densitat del que s'ha obtingut a l'apartat (e) i (f). (1.5 punts)
+
+
+```{r}
+par(mfrow = c(1, 2)) #Posem els 2 grafics junts
+
+#a) 
+set.seed(543)
+#b)
+b<-rbinom(50,100000,0.3)
+#c)
+c<-rbinom(70,100000,0.3)
+#d)
+d<-rbinom(80,100000,0.3)
+#e)
+suma <- c(d,c,b)
+s = seq(0,100000,100) # sequencia del 0 al 100000 de 100 en 100
+x = rep(0,length(s)-1) # inicialitzem vector amb la longitud de s per anar guardant el contatge de cada interval
+
+for(i in 1:(length(s)-1)){ #contem quants valors de 'suma' hi ha en cada interval 
+  x[i] = length(suma[(suma>s[i])&suma<s[i+1]])
+}
+x = x/sum(x) #estandaritzem
+y = x[seq(290,310)] # com que tenim un rang de 0-100000 escollim una part d'aquest interval on s'acumulen la major part dels intervals de la funció de densitat, ja que la resta son 0
+x = s[seq(290,310)]
+plot(x,y,type="h",xlab="number of successes (intervals)",ylab="probability")
+
+
+#f)
+f <- rbinom(80+70+50,100000,0.3)
+s = seq(0,100000,100)
+x = rep(0,length(s)-1)
+names(x) = s[-length(s)]
+for(i in 1:(length(s)-1)){
+  x[i] = length(f[(f>s[i])&f<s[i+1]])
+}
+x = x/sum(x)
+y = x[seq(290,310)]
+x = s[seq(290,310)]
+plot(x,y,type="h",xlab="number of successes (intervals)",ylab="probability")
+
+
+
+```
+
+Podem observar que es tracta gairebé de la mateixa funció en els 2 gràfics, ja que el grau d'equivalència que tenim entre les dues PDF serà més precís quan major sigui el nombre de valors de la binomial (en aquest cas 100.000). En aquest nombre de valors podem veure com les dues PDF tendeixen a convergir, i que quan més gran sigui aquest valor més semblants serán els gráfics.
+
+
+
+
+
+#### 2.3. En una caixa hi ha 5 boles vermelles i 3 verdes. Realitza: (a) calcula la probabilitat que surti vermell; (b) calcula la probabilitat que surti verd; (c) simula 2 extraccions sense reemplaçament utilitzant la funció "sample"; (d) simula 100 amb reemplaçament utilitzant la funció "sample". Fes servir "set.seed(123)" a l'inici del teu codi. (1.5 punt)
+
+```{r}
+
+set.seed(123)
+
+vermell <- 5/8
+cat("Probabilitat de que surti vermell ", vermell)
+
+verd <- 3/8
+cat("Probabilitat de que surti verd", verd)
+
+#Simulem dos extraccions sense reemplaçament
+extraccio_1 <- sample(c(1,0), 2, prob=c(vermell,verd)) #1 correspon a vermell i 0 correspon a verd
+cat("Primera simulació sense reemplaçament", extraccio_1)
+cat("Vermell:", sum(extraccio_1 == 1))
+cat("Verd:", sum(extraccio_1 == 0))
+#Simulem 100 extraccions amb reemplaçament
+extraccio_2 <- sample(c(1,0), 100, rep=T, prob=c(vermell,verd))
+cat("100 extraccions amb reemplaçament: ", extraccio_2)
+cat("Vermell:", sum(extraccio_2 == 1))
+cat("Verd:", sum(extraccio_2 == 0))
+```
+
+#### 2.4. Executa "set.seed(123)" i després: (a) simula 1000 valors de la distribució exponencial amb paràmetre 1; (b) utilitzant l'aproximació, calcula la probabilitat que sigui més gran que 2; (c) calcula la mateixa probabilitat que a l'apartat b utilitzant la funció "pexp"; (d) calcula els quartils de la simulació. (1 punt)
+
+```{r}
+set.seed(123)
+
+#a)
+a <- rexp(1000, rate = 1)
+hist(a, col = "lightblue", main = "Histograma de la mostra a", xlab = "Valors")
+
+#b) 
+p = length(a[a>2])/1000 #Contem el nº de valors més gran que 2 i el dividim entre el nombre de valors total
+cat("La probabilitat aproximada de ser més gran que 2 es:",p)
+
+#c)
+prob_mes_gran_que_2 <- 1 - pexp(2, rate = 1)
+cat("La probabilitat de ser més gran que 2 es",prob_mes_gran_que_2)
+#d)
+quartils <- quantile(a, probs = c(0.25, 0.5, 0.75))
+#Els quartils de la distribució exponencial simulada son:
+print(quartils)
+```

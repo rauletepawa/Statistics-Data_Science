@@ -1,0 +1,384 @@
+demora;hospital;edad;sexo;nacional;medio1;distanc;remitido;nse;cohabit;cardiop;dolor;noche;ambulan;logdemora
+1830;1;76;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;75.120.711
+75;1;87;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+750;1;28;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;66.200.733
+180;5;71;Mujer;Español;Fuera del domicilio;2;0;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;51.929.569
+125;2;63;Mujer;Español;Domicilio;0;1;Alto;Vive solo;Si;Moderado;Dia;Ambulancia;48.283.138
+2400;3;56;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Ligero;Noche;Ambulancia;77.832.241
+690;3;76;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Otros medios;65.366.917
+720;1;78;Mujer;Español;Domicilio;0;1;Medio;Vive solo;Si;Moderado;Dia;Ambulancia;65.792.513
+1050;2;64;Hombre;Español;Domicilio;1;0;Alto;Vive solo;Si;Ligero;Dia;Ambulancia;69.565.454
+75;5;65;Hombre;Español;Domicilio;2;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+130;1;;Hombre;Español;Domicilio;1;1;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;48.675.346
+240;2;61;Hombre;Español;Domicilio;1;0;Bajo;Vive solo;No;Moderado;Dia;Ambulancia;5.480.639
+770;5;49;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;66.463.904
+1260;1;51;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;71.388.669
+2700;5;55;Mujer;Español;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;79.010.072
+1210;1;46;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Ligero;Noche;Ambulancia;70.983.758
+1650;2;68;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Noche;Ambulancia;74.085.307
+3000;2;68;Hombre;Español;Domicilio;1;0;Bajo;Vive en compañia;Si;Ligero;Noche;Ambulancia;80.063.677
+855;5;68;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Ligero;Dia;Ambulancia;67.511.015
+90;5;54;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+40;1;65;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Intenso;Dia;Ambulancia;36.888.795
+230;1;87;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;54.380.794
+90;1;73;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;44.998.097
+140;2;80;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Otros medios;49.416.423
+160;1;51;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;50.751.739
+300;1;82;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;57.037.826
+340;5;59;Hombre;Español;Fuera del domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Noche;Ambulancia;58.289.456
+1080;5;67;Hombre;Español;Domicilio;0;0;Bajo;Vive en compañia;Si;Moderado;Noche;Ambulancia;69.847.164
+1275;1;65;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;71.507.015
+750;5;62;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;66.200.733
+920;1;65;Hombre;Español;Fuera del domicilio;0;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;68.243.737
+2220;5;68;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Noche;Otros medios;77.052.627
+1455;5;43;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;72.827.611
+1395;5;88;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Otros medios;72.406.497
+2580;1;78;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Moderado;Noche;Otros medios;78.555.446
+2890;2;77;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Noche;Ambulancia;79.690.118
+4345;1;;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Moderado;Noche;Ambulancia;83.767.815
+75;2;62;Hombre;Extranjero;Domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Otros medios;43.174.882
+140;5;57;Hombre;Español;Domicilio;2;0;Medio;Vive en compañia;Si;Intenso;Dia;Otros medios;49.416.423
+115;2;69;Hombre;Español;Domicilio;2;0;Medio;Vive en compañia;Si;Intenso;Dia;Otros medios;47.449.322
+105;5;63;Hombre;Español;Domicilio;2;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;46.539.602
+120;5;59;Hombre;Extranjero;Domicilio;2;1;Bajo;Vive en compañia;Si;Intenso;Dia;Ambulancia;47.874.918
+1260;3;71;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;71.388.669
+2220;2;87;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;77.052.627
+140;1;54;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;No;Ligero;Dia;Ambulancia;49.416.423
+300;1;76;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Noche;Ambulancia;57.037.826
+260;2;70;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;55.606.818
+610;3;72;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;64.134.588
+325;1;57;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;57.838.254
+555;1;65;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;63.189.683
+1440;3;65;Hombre;Español;Fuera del domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;72.723.985
+735;3;71;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;65.998.707
+740;1;75;Mujer;Español;Domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;66.066.504
+2520;5;50;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;78.320.141
+735;1;90;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;65.998.707
+1440;3;63;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Dia;Otros medios;72.723.985
+1020;1;75;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Ligero;Dia;Ambulancia;69.275.579
+2103;1;64;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;76.511.202
+1950;3;59;Hombre;Español;Domicilio;0;0;Medio;Vive solo;No;Moderado;Dia;Ambulancia;75.755.849
+1140;2;82;Hombre;Español;Domicilio;2;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;70.387.836
+1500;5;61;Hombre;Español;Domicilio;2;0;Bajo;Vive en compañia;No;Moderado;Dia;Otros medios;73.132.205
+1470;5;60;Mujer;Español;Domicilio;1;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;72.930.179
+1450;5;64;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;72.793.188
+1580;1;68;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;736.518
+1890;3;69;Hombre;Español;Domicilio;3;0;Alto;Vive solo;No;Moderado;Noche;Ambulancia;7.544.332
+1830;2;68;Hombre;Español;Fuera del domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Otros medios;75.120.711
+2670;5;56;Hombre;Español;Fuera del domicilio;0;0;Alto;Vive en compañia;No;Moderado;Noche;Ambulancia;78.898.339
+3180;1;64;Hombre;Español;Fuera del domicilio;0;0;Medio;Vive en compañia;No;Ligero;Noche;Ambulancia;80.646.362
+2895;1;82;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;79.707.403
+3120;5;71;Mujer;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;80.455.885
+3720;5;61;Hombre;Español;Domicilio;2;0;Alto;Vive en compañia;Si;Ligero;Noche;Otros medios;82.214.794
+3360;5;67;Hombre;Extranjero;Domicilio;1;0;Bajo;Vive en compañia;No;Intenso;Noche;Ambulancia;81.196.966
+4335;2;67;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;No;Ligero;Noche;Ambulancia;83.744.764
+30;2;42;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Noche;Ambulancia;34.011.974
+25;5;77;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;32.188.759
+780;1;75;Mujer;Español;Fuera del domicilio;0;1;Bajo;Vive en compañia;No;Intenso;Noche;Ambulancia;66.592.941
+780;1;75;Mujer;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;66.592.941
+1020;3;56;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;69.275.579
+1090;3;72;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;Si;Moderado;Noche;Ambulancia;69.939.332
+90;5;53;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Noche;Otros medios;44.998.097
+60;2;81;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;40.943.446
+139;2;73;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;4.934.474
+30;5;41;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Noche;Otros medios;34.011.974
+740;1;54;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;66.066.504
+110;1;66;Hombre;Español;Domicilio;1;1;Medio;Vive solo;Si;Intenso;Noche;Ambulancia;47.004.805
+420;2;77;Mujer;Español;Domicilio;1;0;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;60.402.546
+250;3;72;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Ligero;Noche;Ambulancia;5.521.461
+75;5;67;Hombre;Extranjero;Domicilio;2;0;Bajo;Vive en compañia;Si;Moderado;Noche;Ambulancia;43.174.882
+550;1;86;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;63.099.184
+490;1;52;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;61.944.056
+29;1;73;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Ligero;Noche;Ambulancia;33.672.957
+60;1;64;Hombre;Extranjero;Fuera del domicilio;0;1;Bajo;Vive en compañia;Si;Intenso;Noche;Ambulancia;40.943.446
+40;1;72;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;36.888.795
+60;1;64;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;40.943.446
+80;1;84;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Ligero;Noche;Otros medios;43.820.267
+1215;5;79;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;71.024.995
+30;1;46;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;34.011.974
+31;1;72;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;34.339.871
+680;5;70;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;65.220.928
+105;2;56;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Ligero;Noche;Ambulancia;46.539.602
+560;5;69;Hombre;Extranjero;Domicilio;1;0;Bajo;Vive en compañia;Si;Intenso;Noche;Otros medios;63.279.366
+30;1;76;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;34.011.974
+30;1;76;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;34.011.974
+430;1;62;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;60.637.851
+100;1;77;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;46.051.702
+780;5;80;Hombre;Español;Fuera del domicilio;0;0;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;66.592.941
+60;5;69;Mujer;Español;Domicilio;0;1;Bajo;Vive solo;Si;Moderado;Noche;Ambulancia;40.943.446
+450;1;36;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;61.092.477
+30;5;56;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;34.011.974
+250;1;;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;5.521.461
+15;2;80;Hombre;Español;Fuera del domicilio;0;1;Bajo;Vive en compañia;Si;Moderado;Noche;Otros medios;27.080.503
+200;3;71;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Intenso;Noche;Otros medios;52.983.174
+25;1;55;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Noche;Ambulancia;32.188.759
+275;3;70;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Noche;Ambulancia;56.167.712
+255;1;72;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Noche;Ambulancia;55.412.636
+75;2;57;Hombre;Español;Domicilio;1;1;Alto;Vive solo;No;Moderado;Noche;Ambulancia;43.174.882
+280;2;62;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;No;Ligero;Noche;Otros medios;56.347.895
+137;3;59;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Noche;Otros medios;4.919.981
+25;1;65;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Intenso;Noche;Ambulancia;32.188.759
+30;3;72;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Moderado;Noche;Otros medios;34.011.974
+569;2;57;Mujer;Español;Domicilio;0;1;Alto;Vive solo;Si;Moderado;Noche;Ambulancia;63.438.807
+120;2;66;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;47.874.918
+1130;2;49;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Noche;Ambulancia;7.029.973
+180;2;80;Mujer;Español;Fuera del domicilio;1;0;Medio;Vive solo;No;Ligero;Noche;Otros medios;51.929.569
+960;3;66;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Ligero;Noche;Ambulancia;68.669.333
+190;1;56;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;52.470.241
+255;1;80;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;55.412.636
+615;1;53;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;64.216.223
+75;1;58;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;43.174.882
+275;1;51;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;56.167.712
+90;5;37;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Otros medios;44.998.097
+40;1;77;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;36.888.795
+90;2;70;Hombre;Extranjero;Domicilio;1;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+90;5;83;Hombre;Español;Domicilio;2;0;Alto;Vive solo;Si;Intenso;Noche;Otros medios;44.998.097
+490;1;88;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;61.944.056
+265;1;50;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Intenso;Dia;Ambulancia;557.973
+1100;1;65;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;70.030.656
+75;1;77;Hombre;Español;Domicilio;0;1;Medio;Vive solo;Si;Moderado;Noche;Ambulancia;43.174.882
+255;1;50;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;55.412.636
+315;3;70;Hombre;Español;Domicilio;2;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;57.525.725
+250;1;82;Mujer;Español;Domicilio;0;1;Alto;Vive solo;No;Intenso;Dia;Ambulancia;5.521.461
+70;1;78;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Noche;Ambulancia;42.484.951
+75;1;67;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;43.174.882
+390;2;68;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;59.661.469
+40;3;54;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;36.888.795
+220;1;67;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;53.936.276
+125;1;60;Hombre;Español;Domicilio;0;1;Alto;Vive solo;Si;Moderado;Noche;Ambulancia;48.283.138
+30;1;78;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Noche;Ambulancia;34.011.974
+220;1;73;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Noche;Ambulancia;53.936.276
+545;1;81;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;6.300.786
+85;3;38;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;44.426.513
+15;1;58;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;27.080.503
+60;2;56;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;40.943.446
+900;5;56;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;68.023.949
+150;5;37;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Noche;Otros medios;50.106.354
+60;3;67;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Intenso;Noche;Otros medios;40.943.446
+445;1;77;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;No;Moderado;Noche;Ambulancia;60.980.744
+200;1;49;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;52.983.174
+210;3;86;Mujer;Español;Domicilio;0;0;Medio;Vive solo;No;Intenso;Dia;Ambulancia;53.471.074
+330;5;74;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;57.990.928
+540;5;59;Mujer;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Noche;Otros medios;62.915.692
+85;1;73;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;44.426.513
+155;5;59;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Noche;Ambulancia;50.434.251
+95;1;91;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Noche;Ambulancia;45.538.769
+95;1;91;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Noche;Ambulancia;45.538.769
+75;5;51;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Noche;Ambulancia;43.174.882
+40;1;80;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;36.888.795
+85;2;63;Mujer;Español;Domicilio;0;1;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;44.426.513
+70;1;62;Hombre;Español;Domicilio;0;1;Medio;Vive solo;No;Intenso;Dia;Ambulancia;42.484.951
+495;1;73;Mujer;Español;Fuera del domicilio;0;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;62.045.579
+330;1;54;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;Si;Intenso;Dia;Otros medios;57.990.928
+70;1;70;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;42.484.951
+390;2;76;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;59.661.469
+120;1;58;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;47.874.918
+40;1;53;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;36.888.795
+180;5;68;Hombre;Extranjero;Domicilio;2;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;51.929.569
+480;2;53;Hombre;Extranjero;Domicilio;1;0;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;61.737.862
+285;3;64;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;No;Ligero;Dia;Ambulancia;56.524.892
+555;1;80;Mujer;Extranjero;Domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;63.189.683
+130;5;66;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;48.675.346
+85;5;73;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;44.426.513
+255;2;66;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;55.412.636
+315;1;61;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;57.525.725
+45;1;72;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;38.066.626
+45;5;76;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;38.066.626
+70;1;84;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Intenso;Dia;Ambulancia;42.484.951
+225;3;71;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Otros medios;54.161.005
+60;1;58;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;40.943.446
+170;2;61;Hombre;Español;Domicilio;1;1;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;51.357.985
+70;3;51;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;42.484.951
+315;3;70;Mujer;Español;Domicilio;2;0;Medio;Vive solo;Si;Moderado;Dia;Ambulancia;57.525.725
+60;5;79;Mujer;Español;Domicilio;0;1;Bajo;Vive en compañia;No;Intenso;Dia;Otros medios;40.943.446
+75;5;75;Mujer;Español;Domicilio;2;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+160;1;72;Hombre;Extranjero;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Otros medios;50.751.739
+120;5;63;Hombre;Español;Domicilio;2;0;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;47.874.918
+455;1;63;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;61.202.974
+100;2;54;Hombre;Español;Fuera del domicilio;3;0;Alto;Vive en compañia;No;Moderado;Dia;Otros medios;46.051.702
+90;1;72;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Ligero;Dia;Ambulancia;44.998.097
+150;5;64;Hombre;Extranjero;Domicilio;0;1;Medio;Vive solo;No;Moderado;Dia;Ambulancia;50.106.354
+195;1;65;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;52.729.998
+95;5;73;Hombre;Español;Fuera del domicilio;2;1;Medio;Vive solo;No;Intenso;Dia;Ambulancia;45.538.769
+105;3;72;Mujer;Español;Domicilio;0;1;Alto;Vive solo;No;Moderado;Dia;Ambulancia;46.539.602
+70;1;67;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Dia;Otros medios;42.484.951
+135;1;59;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;49.052.749
+210;1;84;Mujer;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;53.471.074
+210;2;84;Mujer;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;53.471.074
+180;2;56;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;51.929.569
+255;1;58;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;55.412.636
+90;5;66;Hombre;Español;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+75;1;46;Hombre;Español;Domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;43.174.882
+130;1;68;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;48.675.346
+25;2;82;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;32.188.759
+16;2;33;Hombre;Español;Fuera del domicilio;0;1;Bajo;Vive en compañia;No;Ligero;Dia;Ambulancia;27.725.887
+300;1;66;Hombre;Extranjero;Fuera del domicilio;1;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;57.037.826
+30;1;;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+30;1;;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+540;1;51;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;62.915.692
+25;1;69;Mujer;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;32.188.759
+160;1;;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;50.751.739
+160;1;;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;50.751.739
+135;1;78;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;49.052.749
+170;1;71;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Ligero;Dia;Ambulancia;51.357.985
+170;1;71;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Ligero;Dia;Ambulancia;51.357.985
+20;3;61;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;29.957.323
+540;1;76;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;62.915.692
+540;1;76;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;62.915.692
+25;1;51;Hombre;Español;Domicilio;0;1;Medio;Vive solo;No;Moderado;Dia;Ambulancia;32.188.759
+25;1;51;Hombre;Español;Domicilio;0;1;Medio;Vive solo;No;Moderado;Dia;Ambulancia;32.188.759
+75;3;67;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;43.174.882
+210;3;65;Mujer;Español;Domicilio;2;0;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;53.471.074
+435;1;;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;6.075.346
+90;5;75;Mujer;Español;Domicilio;0;0;Alto;Vive solo;No;Intenso;Dia;Otros medios;44.998.097
+135;5;75;Mujer;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;49.052.749
+90;5;62;Mujer;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;44.998.097
+240;5;88;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;5.480.639
+215;3;59;Hombre;Español;Domicilio;2;0;Medio;Vive en compañia;Si;Moderado;Dia;Otros medios;53.706.379
+75;1;66;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;43.174.882
+540;2;59;Mujer;Español;Domicilio;0;1;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;62.915.692
+195;1;;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;52.729.998
+180;1;72;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;51.929.569
+20;1;78;Mujer;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;29.957.323
+210;2;61;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Dia;Otros medios;53.471.074
+45;1;71;Hombre;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;38.066.626
+210;1;;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;53.471.074
+105;5;74;Hombre;Español;Fuera del domicilio;2;0;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;46.539.602
+40;3;50;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;36.888.795
+100;5;76;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;46.051.702
+41;1;64;Hombre;Español;Domicilio;0;1;Medio;Vive solo;No;Ligero;Dia;Ambulancia;3.713.572
+30;2;33;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;34.011.974
+165;5;69;Hombre;Extranjero;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;51.059.456
+180;1;74;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;51.929.569
+175;3;70;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;51.647.859
+50;1;51;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;39.120.231
+45;2;;Mujer;Extranjero;Fuera del domicilio;2;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;38.066.626
+30;2;74;Hombre;Español;Domicilio;1;1;Bajo;Vive solo;Si;Moderado;Dia;Ambulancia;34.011.974
+60;3;68;Hombre;Español;Domicilio;1;0;Alto;Vive solo;No;Intenso;Dia;Ambulancia;40.943.446
+90;3;61;Hombre;Español;Domicilio;2;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+187;3;71;Mujer;Español;Domicilio;2;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;52.311.087
+180;2;67;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;51.929.569
+229;2;69;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;Si;Intenso;Dia;Otros medios;5.433.722
+30;1;40;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+140;1;72;Hombre;Español;Domicilio;0;0;Bajo;Vive en compañia;Si;Moderado;Dia;Ambulancia;49.416.423
+70;1;57;Hombre;Español;Domicilio;1;0;Bajo;Vive en compañia;No;Intenso;Dia;Otros medios;42.484.951
+500;2;74;Hombre;Español;Domicilio;1;0;Bajo;Vive en compañia;No;Moderado;Dia;Otros medios;62.146.082
+150;5;68;Hombre;Español;Fuera del domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Otros medios;50.106.354
+890;2;55;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;67.912.216
+135;1;42;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;49.052.749
+35;1;59;Mujer;Español;Domicilio;2;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;35.553.482
+50;1;79;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;39.120.231
+38;1;51;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;No;Ligero;Dia;Ambulancia;36.375.861
+150;5;78;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;50.106.354
+60;2;61;Mujer;Extranjero;Fuera del domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;40.943.446
+210;1;66;Hombre;Español;Fuera del domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;53.471.074
+414;3;77;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;Si;Intenso;Dia;Otros medios;6.025.866
+20;2;49;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;29.957.323
+60;1;;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive solo;No;Intenso;Dia;Ambulancia;40.943.446
+75;5;72;Hombre;Español;Fuera del domicilio;2;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+75;1;66;Hombre;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;No;Moderado;Dia;Otros medios;43.174.882
+70;1;49;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;42.484.951
+40;3;52;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;36.888.795
+135;3;55;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;49.052.749
+65;2;57;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;41.743.875
+15;1;67;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Otros medios;27.080.503
+120;2;52;Mujer;Extranjero;Fuera del domicilio;2;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;47.874.918
+90;1;60;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+60;5;54;Hombre;Español;Fuera del domicilio;2;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;40.943.446
+316;3;49;Mujer;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;57.557.421
+4;5;62;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;13.862.944
+150;5;73;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;50.106.354
+435;5;46;Hombre;Español;Fuera del domicilio;0;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;6.075.346
+90;5;65;Hombre;Español;Domicilio;2;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+20;2;68;Mujer;Español;Fuera del domicilio;0;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;29.957.323
+25;1;81;Mujer;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Dia;Otros medios;32.188.759
+90;5;60;Mujer;Español;Fuera del domicilio;2;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;44.998.097
+280;1;69;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;56.347.895
+105;5;68;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;Si;Ligero;Dia;Ambulancia;46.539.602
+320;5;75;Mujer;Español;Domicilio;1;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;5.768.321
+90;5;52;Mujer;Español;Domicilio;0;1;Medio;Vive solo;No;Moderado;Dia;Ambulancia;44.998.097
+25;1;76;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Moderado;Dia;Ambulancia;32.188.759
+35;2;;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;35.553.482
+60;5;69;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Ligero;Dia;Ambulancia;40.943.446
+190;1;66;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;52.470.241
+255;2;67;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;55.412.636
+60;5;;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive solo;Si;Intenso;Dia;Ambulancia;40.943.446
+210;3;73;Hombre;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;Si;Moderado;Dia;Otros medios;53.471.074
+90;1;71;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;44.998.097
+45;1;63;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;38.066.626
+45;1;63;Hombre;Extranjero;Domicilio;0;0;Bajo;Vive solo;No;Intenso;Dia;Ambulancia;38.066.626
+50;1;59;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Ligero;Dia;Ambulancia;39.120.231
+160;1;71;Mujer;Español;Domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;50.751.739
+20;1;50;Mujer;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;29.957.323
+20;1;50;Mujer;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;29.957.323
+65;1;62;Mujer;Español;Fuera del domicilio;1;0;Medio;Vive en compañia;No;Ligero;Dia;Otros medios;41.743.875
+30;5;68;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+40;1;79;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;36.888.795
+20;3;51;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;29.957.323
+25;5;50;Hombre;Extranjero;Fuera del domicilio;0;1;Medio;Vive solo;No;Intenso;Dia;Otros medios;32.188.759
+30;5;72;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;34.011.974
+115;3;;Mujer;Español;Domicilio;0;0;Alto;Vive solo;Si;Moderado;Dia;Otros medios;47.449.322
+60;1;59;Hombre;Español;Fuera del domicilio;1;0;Medio;Vive solo;No;Intenso;Dia;Ambulancia;40.943.446
+30;5;64;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;34.011.974
+150;1;57;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;50.106.354
+30;1;45;Hombre;Español;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+55;1;55;Mujer;Español;Fuera del domicilio;1;1;Alto;Vive solo;No;Intenso;Dia;Ambulancia;40.073.333
+75;5;63;Hombre;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+60;1;76;Hombre;Español;Domicilio;0;1;Bajo;Vive en compañia;Si;Moderado;Dia;Ambulancia;40.943.446
+60;5;72;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;40.943.446
+100;1;68;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;46.051.702
+130;1;65;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;48.675.346
+90;1;74;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;44.998.097
+150;1;73;Mujer;Español;Domicilio;1;1;Medio;Vive solo;Si;Intenso;Dia;Ambulancia;50.106.354
+15;3;45;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;27.080.503
+15;1;43;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive solo;No;Intenso;Dia;Ambulancia;27.080.503
+75;3;52;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Otros medios;43.174.882
+40;3;55;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;36.888.795
+120;1;54;Mujer;Español;Domicilio;1;0;Alto;Vive en compañia;No;Intenso;Dia;Otros medios;47.874.918
+25;1;58;Hombre;Español;Domicilio;0;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;32.188.759
+30;5;67;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;34.011.974
+75;1;77;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;43.174.882
+20;1;36;Hombre;Español;Fuera del domicilio;1;1;Medio;Vive solo;No;Ligero;Dia;Ambulancia;29.957.323
+30;1;61;Hombre;Extranjero;Domicilio;1;0;Bajo;Vive solo;Si;Intenso;Dia;Ambulancia;34.011.974
+40;1;48;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;36.888.795
+75;3;70;Mujer;Español;Domicilio;1;0;Alto;Vive solo;No;Moderado;Dia;Otros medios;43.174.882
+50;3;69;Mujer;Español;Domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Otros medios;39.120.231
+90;3;52;Hombre;Español;Domicilio;2;1;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;44.998.097
+25;1;61;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;32.188.759
+25;1;61;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;32.188.759
+130;1;71;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;48.675.346
+45;3;64;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;38.066.626
+75;2;70;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;43.174.882
+30;5;67;Mujer;Español;Fuera del domicilio;0;0;Bajo;Vive solo;No;Moderado;Dia;Otros medios;34.011.974
+80;1;66;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;43.820.267
+65;3;60;Hombre;Español;Domicilio;1;0;Alto;Vive en compañia;No;Intenso;Dia;Otros medios;41.743.875
+135;1;71;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;49.052.749
+60;5;68;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;40.943.446
+15;1;49;Hombre;Español;Fuera del domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;27.080.503
+90;2;66;Hombre;Español;Fuera del domicilio;1;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;44.998.097
+135;1;71;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;49.052.749
+45;5;76;Hombre;Extranjero;Domicilio;2;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;38.066.626
+30;2;64;Mujer;Extranjero;Domicilio;0;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+35;1;64;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Intenso;Dia;Ambulancia;35.553.482
+60;1;51;Hombre;Español;Domicilio;1;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;40.943.446
+125;1;85;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;48.283.138
+90;1;64;Mujer;Extranjero;Domicilio;1;0;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;44.998.097
+45;5;76;Mujer;Español;Domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;38.066.626
+130;1;77;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;48.675.346
+14;1;62;Hombre;Español;Domicilio;0;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;26.390.574
+135;1;86;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;Si;Moderado;Dia;Ambulancia;49.052.749
+110;5;35;Hombre;Español;Fuera del domicilio;1;0;Bajo;Vive solo;No;Moderado;Dia;Ambulancia;47.004.805
+120;5;76;Hombre;Extranjero;Domicilio;1;1;Medio;Vive en compañia;Si;Intenso;Dia;Ambulancia;47.874.918
+105;5;49;Hombre;Español;Fuera del domicilio;1;0;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;46.539.602
+190;1;67;Hombre;Español;Fuera del domicilio;0;1;Alto;Vive en compañia;No;Moderado;Dia;Ambulancia;52.470.241
+110;3;88;Hombre;Español;Domicilio;1;1;Alto;Vive en compañia;Si;Moderado;Dia;Ambulancia;47.004.805
+75;5;48;Hombre;Español;Domicilio;1;0;Bajo;Vive en compañia;No;Intenso;Dia;Ambulancia;43.174.882
+95;1;78;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Moderado;Dia;Ambulancia;45.538.769
+20;2;34;Hombre;Español;Fuera del domicilio;0;0;Bajo;Vive en compañia;No;Moderado;Dia;Ambulancia;29.957.323
+18;3;58;Mujer;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;28.903.718
+30;3;38;Hombre;Español;Domicilio;0;1;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;34.011.974
+150;1;74;Mujer;Español;Domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;50.106.354
+150;1;74;Mujer;Español;Domicilio;1;1;Alto;Vive en compañia;No;Intenso;Dia;Ambulancia;50.106.354
+60;2;59;Hombre;Español;Domicilio;1;0;Medio;Vive en compañia;No;Moderado;Dia;Otros medios;40.943.446
+45;5;57;Hombre;Extranjero;Domicilio;2;1;Bajo;Vive en compañia;No;Intenso;Dia;Otros medios;38.066.626
+70;3;64;Hombre;Español;Domicilio;0;0;Medio;Vive en compañia;No;Intenso;Dia;Ambulancia;42.484.951

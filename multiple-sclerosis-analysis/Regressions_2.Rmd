@@ -1,0 +1,785 @@
+---
+title: "PAC2 Regresión Modelos y Métodos"
+author: "Raul Perez Prats"
+date: "2024-06-24"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tabla de contenidos
+
+## 1. Ejercicio 1 
+
+## 2. Ejercicio 2
+
+## 3. Ejercicio 3
+
+## 4. Apéndices
+
+---
+
+## Ejercicio 1
+
+Cargamos los datos y aplicamos las tranformaciones pertinentes:
+
+```{r}
+library(dplyr)
+
+data <- read.csv('ela_allBiomarkers.csv')
+# Añadimos columna de supervivencia (1,0) a los 36 meses para poder hacer la regresión logística
+data <- data %>% mutate(survived_36_months = ifelse(months_survived >= 36, 1, 0))
+# Convertir variables categóricas a factores
+data <- data %>%
+  mutate(sex = as.factor(sex),
+         onset = as.factor(onset))
+
+dev_data <- data %>% filter(cohort %in% c("DevCohort"))
+dev_val_data <- data %>% filter(cohort %in% c("DevCohort", "ValCohort1"))
+
+val_1_data <- data %>% filter(cohort %in% c("ValCohort1"))
+val_2_data <- data %>% filter(cohort %in% c("ValCohort2"))
+
+head(dev_val_data)
+```
+Head de 'dev_val_data' que nos permite observar de forma general el formato de los datos y sus variables.
+
+### A)
+
+```{r,echo=FALSE}
+
+# Mostrar el número de pacientes que sobrevivieron 36 meses o más
+num_survived_36_months <- nrow(data %>% filter(months_survived >= 36))
+cat("Número de pacientes que sobrevivieron 36 meses o más:", num_survived_36_months, "\n")
+
+# Calcular el porcentaje de supervivencia a los 36 meses
+total_patients <- nrow(data)
+surv_percentage_36_months <- (num_survived_36_months / total_patients) * 100
+
+cat("Porcentaje de pacientes que sobrevivieron 36 meses o más:", surv_percentage_36_months, "%\n")
+
+#-------------------------------------------------------------------------------------------------------------------------
+
+
+
+# Ajustar el modelo de regresión logística
+logistic_model <- glm(survived_36_months ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline + IL6_baseline, 
+                      data = dev_val_data, 
+                      family = binomial())
+
+# Resumen del modelo
+summary(logistic_model)
+
+# Identificar las variables significativas
+significant_vars <- summary(logistic_model)$coefficients[,4] < 0.05
+significant_vars <- names(significant_vars[significant_vars])
+cat("Las variables significativas son:", significant_vars, "\n")
+
+
+
+```
+Hay un 44.53% de pacientes que sobrevivieron durante 36 meses o más. Entrenamos un modelo multivariado de regresion logística para hacer una predicción binaria entre supervivencia >= 36 meses. Las variables con p-valor < 0.05 son aquellas estadísticamente significantes para la predicción correcta de la supervivencia. Estas variables significativas son 'onset', 'NfL_baseline' y 'IL6-baseline'.
+
+La distribución del estadístico Z es una distribución normal estándar.
+
+
+
+### B)
+
+Según las variables significativas del modelo entrenado en el apartado A), las características que tenemos que observar en un paciente para poder predecir exitosamente si sobrevivirá más de 36 meses son: el orígen de la ELA (onset) y los niveles de los biomarcadores Nf-L (NfL_baseline) y IL-6 (IL6-baseline). Según esta información, si se conoce el orígen de la ELA, y los niveles de cadenas ligeras de neurofilamentos e interleucina-6 en sangre podemos predecir exitosamente si el tiempo de supervivencia de nuestros pacientes será superior 36 meses. No obstante, antes de dar estas afirmaciones por buenas tenemos que comprobar si el ajuste y la calidad del modelo es buena. Para evaluar el modelo nos centraremos en los valores de:
+
+-La desviación nula (Null deviance) mide el ajuste del modelo solo con la intersección, sin incluir ninguna de las variables predictoras. Es una medida de la discrepancia entre los valores observados y el modelo más simple (solo intersección).
+-La desviación residual (Residual deviance) mide el ajuste del modelo que incluye todas las variables predictoras. Es una medida de la discrepancia entre los valores observados y los valores predichos por el modelo completo.
+-El criterio de información de Akaike (AIC) es una medida de la calidad del modelo que considera tanto el ajuste como la complejidad del modelo. Penaliza la inclusión de más variables predictoras.
+
+Cuanto menor es la AIC, mejor es el ajuste de nuestro modelo, por ahora como no tenemos ningún otro punto de referencia no podemos usar esta medida para evaluar el rendimiento del modelo ya que no tenemos ningún otro modelo de referencia con el que comparar la AIC y ver si es grande o pequeña.
+
+En cambio, si comparamos la desviación nula con la desviación residual, rápidamente nos damos cuenta de que la desviación residual tan solo consigue reducir en un 43.4% el valor de la desviación nula. Teniendo en cuenta que la desviación nula es parecido a un algoritmo Zero Rule, que nos ayuda a observar el rendimiento de nuestro modelo en el caso más simple posible para usarlo de referencia y ver como mejoran las predicciones a medida que añadimos más parámetros, una reducción del 43% de la desviación en la desviación residual es un valor muy escaso, ya que un buen modelo con unos parámetros que se ajustaran bien al problema de clasificación binaria al que nos estamos enfrentando tendría un incremento mucho mayor entre la desviación nula y la desviación residual.
+
+### C)
+
+```{r,echo=FALSE}
+# Ajustar el modelo de regresión logística
+logistic_model_no_IL6 <- glm(survived_36_months ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline,# + IL6_baseline, 
+                      data = dev_val_data, 
+                      family = binomial())
+
+# Resumen del modelo
+summary(logistic_model_no_IL6)
+
+```
+Si eliminamos la variable 'IL6-baseline' si que cambian las variables significativas, ya que 'CRP_baseline' pasa a ser una variable significativa en este modelo, mientras que en el modelo anterior no lo era. Por otro lado, las variables 'onset' y 'NfL_baseline' se mantienen significativas.
+
+```{r,echo=FALSE}
+# Calculamos matriz de correlaciones
+cor(data[, c("IL6_baseline", "CRP_baseline", "NfL_baseline", "age", "BMI_baseline")])
+```
+
+Esta sustitución de variables significativas de 'IL6-baseline' a 'CRP_baseline' puede ser debido a la colinealidad, ya que tal y como observamos en la matriz de correlaciones las variables con las que más se correlaciona 'IL6-baseline' son 'CRP_baseline' y 'NfL_baseline', como 'NfL_baseline' ya está en el modelo, cuando eliminamos 'IL6-baseline' la sustituye la siguiente variable no presente en el modelo anterior más correlacionada (CRP_baseline) ya que es el mejor candidato para tener efectos muy similares al modelo anterior en la predicción del la supervivencia. La AIC de este modelo es superior a la del anterior (108.57>89.733), por lo tanto este modelo presenta un peor ajuste y peor rendimiento a la hora de predecir correctamente el tiempo de supervivencia. 
+
+Test de Hipótesis:
+
+H0: β*IL6_baseline = 0
+
+H1: β*IL6_baseline ≠ 0
+
+```{r}
+
+# Log-verosimilitud del modelo completo
+logLik(logistic_model)
+
+# Log-verosimilitud del modelo reducido
+logLik(logistic_model_no_IL6)
+
+# Calcular el estadístico de la prueba
+logLik_completo <- logLik(logistic_model)
+logLik_reducido <- logLik(logistic_model_no_IL6)
+LRT_statistic <- -2 * (logLik_reducido - logLik_completo)
+
+# Grados de libertad (número de parámetros adicionales en el modelo completo)
+df <- 1
+
+# Valor p
+p_value <- pchisq(LRT_statistic, df, lower.tail = FALSE)
+print(p_value)
+
+```
+Para aceptar la Hipostesis alternativa (H1) y demostrar que el biomarcador 'IL6_baseline' aporta información significativa al modelo hemos comparado la logverosimilitud de los modelos con y sin 'IL6_baseline'. Como el p-valor < 0.05 aceptamos H1 y por lo tanto no podemos usar el modelo reducido, ya que el modelo que incluye 'IL6_baseline' hace mejores predicciones y es más fiable. Estos resultados concuerdan con lo que hemos mencionado sobre las comparaciones de las AIC (108.57>89.733).
+
+### D)
+
+```{r}
+
+# Ajustar el modelo nulo
+null_model <- glm(survived_36_months ~ 1, data = dev_val_data, family = binomial())
+
+# Log-verosimilitud del modelo nulo
+logLik_null <- logLik(null_model)
+
+# Calcular el pseudo R^2 de McFadden
+pseudo_R2_McFadden <- 1 - (logLik_completo / logLik_null)
+
+# Mostrar el resultado
+print(pseudo_R2_McFadden)
+
+```
+Este valor indica que el modelo completo explica aproximadamente el 43.24% de la variabilidad en los datos que no está explicado por el modelo nulo (sin predictores). En otras palabras, este es el porcentaje de mejora en la log-verosimilitud del modelo completo comparado con el modelo nulo. 
+Este valor está en un rango intermedio, sugiriendo que el modelo tiene un ajuste moderado.
+Como ya hemos mencionado anteriormente, teniendo en cuenta que se trata de una clasificacion binaria, el coeficiente R^2 McFadden debería de ser mucho más alto en un modelo con un buen ajuste en el que las variables explicasen de forma más robusta la variable objetivo. 
+
+### E)
+
+
+```{r,warning=FALSE,echo=FALSE}
+library(caret)
+
+#val_2_data
+# Predicciones de probabilidades
+predicted_probabilities <- predict(logistic_model, newdata = val_2_data, type = "response")
+
+# Convertir probabilidades en clases
+predicted_classes <- ifelse(predicted_probabilities > 0.5, 1, 0)
+
+# Crear la matriz de confusión
+conf_matrix <- confusionMatrix(as.factor(predicted_classes), as.factor(val_2_data$survived_36_months))
+
+# Mostrar la matriz de confusión
+print(conf_matrix)
+
+```
+El modelo tiene una precisión razonable, con un 69.7% de predicciones correctas y una buena capacidad para identificar a los pacientes que sobrevivieron a 36 meses (sensibilidad del 76.47%). Sin embargo, su capacidad para identificar a los pacientes que no sobrevivieron a 36 meses es algo menor (especificidad del 62.5%). La precisión positiva y negativa también son razonablemente altas, lo que indica que el modelo es útil para predecir la supervivencia a 36 meses en la cohorte ValCohort2.
+
+La prueba de McNemar sugiere que no hay un sesgo significativo en los errores de clasificación.
+
+No obstante, el No Information Rate = 0.5152 (actua como un algoritmo Zero Rule) indica que si siempre predijéramos la clase mayoritaria (supervivencia o no supervivencia), tendríamos un 51.52% de precisión sin necesidad de hacer las predicciones con un modelo entrenado específicamente para ésta tarea. Esto indica que el incremento de precisión del modelo entrenado respecto a predicciones estocásticas, es de un 18.7%. Este porcentaje de incremento resulta una mejora un tanto baja para un problema de clasificación binaria de clases prácticamente balanceadas. 
+
+## Ejercicio 2
+
+### A)
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+library(tidyverse)
+
+# Ajustar el modelo de regresión lineal
+linear_model <- lm(ALSFRSR_baseline ~ NfL_baseline + onset + sex + age + sex:age, data = dev_val_data)
+
+# Resumen del modelo
+summary(linear_model)
+
+```
+Vemos que el valor de la Adjusted R-squared es muy bajo y tan solo explica un 16.88% de la variabilidad del modelo. Como variables significativas tenemos a 'NfL_baseline' y 'onset'. El p-valor del modelo indica que éste es significativo. Aunque su ajuste es pobre y sus predicciones poco fiables, debido a que un 83.12% de la variación de los datos no es explicada por el modelo.
+
+### B)
+
+Contrastes de hipotesis
+
+A) H0: β1=0
+   H1: β1≠0
+   
+B) H0: β5=0 (para mujeres)
+   H1: β5≠0 (para mujeres)
+
+C) H0: β5=0 (para hombres)
+   H1: β5≠0 (para hombres)  
+   
+
+```{r,message=FALSE,warning=FALSE}
+library(car)
+
+model_summary <- summary(linear_model)
+
+# Obtener el valor p para NfL_baseline
+p_value_NfL <- model_summary$coefficients["NfL_baseline", "Pr(>|t|)"]
+
+# Verificar si el valor p es menor que 0.10
+if (p_value_NfL < 0.10) {
+  print("A) Rechazamos H0: El biomarcador Nf-L tiene un efecto significativo sobre la puntuación ALSFRSR.")
+} else {
+  print("A) No rechazamos H0: El biomarcador Nf-L no tiene un efecto significativo sobre la puntuación ALSFRSR.")
+}
+
+# Probar la hipótesis lineal age + sex:age = 0
+linear_hypothesis_result <- linearHypothesis(linear_model, "age + sexmale:age = 0")
+
+# Obtener el valor p del contraste
+p_value_combination <- linear_hypothesis_result[2, "Pr(>F)"]
+
+# Verificar si el valor p es menor que 0.10
+if (p_value_combination < 0.10) {
+  print("B) Rechazamos H0: La edad tiene un efecto significativo sobre la puntuación ALSFRSR en mujeres")
+} else {
+  print("B) No rechazamos H0: La edad no tiene un efecto significativo sobre la puntuación ALSFRSR en mujeres")
+}
+
+# Probar la hipótesis lineal age + sex:age = 1
+linear_hypothesis_result <- linearHypothesis(linear_model, "age + sexmale:age = 1")
+
+# Obtener el valor p del contraste
+p_value_combination <- linear_hypothesis_result[2, "Pr(>F)"]
+
+# Verificar si el valor p es menor que 0.10
+if (p_value_combination < 0.10) {
+  print("C) Rechazamos H0: La edad tiene un efecto significativo sobre la puntuación ALSFRSR en hombres.")
+} else {
+  print("C) No rechazamos H0: La edad no tiene un efecto significativo sobre la puntuación ALSFRSR en hombres.")
+}
+
+```
+### C)
+
+```{r,echo=FALSE}
+
+# Gráficos de diagnóstico del modelo
+par(mfrow = c(2, 2))
+plot(linear_model)
+
+```
+En los gráficos de diagnóstico para el modelo de regresión lineal se puede observar el gráfico de "Residuals vs Fitted", que muestra un patrón curvo, indicando que el modelo no captura completamente la relación entre las variables. Además, hay algunos puntos fuera del patrón general que podrían ser outliers. El gráfico "Normal Q-Q" indica que los residuos no siguen perfectamente una distribución normal, especialmente en los extremos, sugiriendo problemas de normalidad. El gráfico "Scale-Location" muestra una tendencia ascendente, lo que sugiere la presencia de heterocedasticidad, donde la varianza de los residuos aumenta con los valores ajustados. Por último, el gráfico "Residuals vs Leverage" identifica algunas observaciones con alto leverage y residuos grandes, indicando que son potencialmente influyentes y podrían tener un impacto significativo en el modelo. Los puntos etiquetados (como 67, 50, 57) deben ser revisados detenidamente. Estos problemas sugieren que el modelo puede no ser completamente adecuado y que se podrían considerar transformaciones de variables, modelos no lineales o técnicas de regresión robusta para mejorar el ajuste y la interpretación del modelo. 
+
+### D)
+
+```{r,warning=FALSE,echo=FALSE,message=FALSE}
+library(MASS)
+
+# Ajustar el modelo de regresión robusta usando el método Huber
+robust_model <- rlm(ALSFRSR_baseline ~ NfL_baseline + onset + sex + age + sex:age, data = dev_val_data)
+
+# Resumen del modelo robusto
+summary(robust_model)
+
+```
+```{r,echo=FALSE}
+
+hweights <- data.frame(state = dev_val_data$ALSFRSR_baseline, resid = robust_model$resid, weight = robust_model$w)
+# filtramos aquellas ponderaciones bajas porque son las que han sido corregidas por el modelo robusto y asignadas un menor weight para disminuir su influencia debido a que son problematicas o outliers.
+problematic_obs_robust <- which(hweights$weight < 1)
+
+# Imprimir las observaciones problemáticas
+cat('Observaciones problematicas según el método Huber:',problematic_obs_robust)
+
+```
+Estas observaciones se han clasificado como problemáticas debido a que tienen un peso < 1. Las muestras con un peso < 1 en el modelo de regresión robusta con el método Huber son aquellas que presentan una gran influencia en el modelo OLS sin ser representativas de la población, y por tanto, sesgan la regresión. La regresión robusta es capaz de corregir este sesgo disminuyendo el peso asignado a estas muestras problemàticas (a menudo outliers) y reduciendo así su influencia en el ajuste de la recta. 
+
+```{r,echo=FALSE}
+
+# Identificar observaciones problemáticas en el modelo OLS
+# Utilizando la distancia de Cook como referencia
+cooks_distance <- cooks.distance(linear_model)
+threshold_cooks <- 4 / (nrow(dev_val_data) - length(coef(linear_model)))
+problematic_obs_OLS <- which(cooks_distance > threshold_cooks)
+
+# Comparar las observaciones problemáticas entre el modelo OLS y el modelo robusto
+common_problematic_obs <- intersect(problematic_obs_robust, problematic_obs_OLS)
+
+# Imprimir las observaciones problemáticas comunes
+cat('Observaciones problematicas identificadas en el modelo OLS y el modelo de regresión robusta según el método Huber:',common_problematic_obs)
+
+
+```
+### E)
+
+```{r,echo=FALSE}
+
+# Obtener los coeficientes y p-valores del modelo OLS
+ols_coef <- coef(summary(linear_model))[, "Estimate"]
+ols_pvalues <- coef(summary(linear_model))[, "Pr(>|t|)"]
+
+# Obtener los coeficientes y p-valores del modelo robusto
+robust_coef <- coef(robust_model)
+robust_summary <- summary(robust_model)
+robust_pvalues <- robust_summary$coefficients[, "t value"]
+
+# Comparar la significancia de los coeficientes
+significancia_ols <- ols_pvalues < 0.1
+significancia_robust <- robust_pvalues < 0.1
+
+# Mostrar los resultados
+print("Significancia de coeficientes para OLS:")
+print(significancia_ols)
+
+print("Significancia de coeficientes para modelo robusto:")
+print(significancia_robust)
+
+
+
+```
+Los resultados muestran que en el modelo OLS, todos los coeficientes, excepto 'sexmale', son significativos al nivel del 10%. En contraste, en el modelo robusto, solo 'NfL_baseline', 'onsetspinal', 'age' y 'sexmale' son significativos, mientras que el 'intercept' y 'sexmale' no alcanzan significancia estadística al nivel del 10%.
+
+Hemos observado la presencia de valores atípicos y problemas de homocedasticidad en los datos, por lo tanto, recomendamos seleccionar un modelo estadístico robusto que pueda mitigar estos efectos para disminuir el sesgo que pueden tener estos valores extremos no representativos sobre el ajuste de nuestro modelo lineal. Este enfoque es crucial para obtener estimaciones de coeficientes más fiables y precisas, particularmente en situaciones como la nuestra, donde la suposición de normalidad y homocedasticidad puede verse comprometida.
+
+## Ejercicio 3
+
+### A)
+
+```{r,echo=FALSE}
+
+# Ajustar el modelo de regresión lineal
+lineal_model_2 <- lm(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline + IL6_baseline, 
+                      data = dev_val_data, 
+                      )
+summary(lineal_model_2)
+```
+'NfL_baseline' es la única variable significativa del modelo.
+Basado en el coeficiente de determinación R^2 ajustado de 0.1351, el modelo explica aproximadamente el 13.5% de la variabilidad en la variable respuesta ALSFRSR_baseline. Esto sugiere que el modelo tiene una capacidad de ajuste moderada, indicando un ajuste pobre de la regresión a los datos.
+
+### B)
+
+Para comprobar la posible multicolinealidad entre las variables regresoras en un modelo de regresión lineal, podemos utilizar varios enfoques. Uno de los métodos más comunes es calcular el Factor de Inflación de la Varianza (Variance Inflation Factor o VIF) para cada variable independiente. El VIF indica cuánto aumenta la varianza de un coeficiente estimado debido a la multicolinealidad con otras variables en el modelo. Generalmente, se considera que un VIF mayor que 10 indica multicolinealidad problemática.
+
+```{r}
+# Calcular VIF para cada variable regresora
+vif_values <- vif(lineal_model_2)
+print(vif_values)
+
+```
+
+Los resultados del cálculo del VIF para cada variable regresora indican que todos los valores están por debajo de 5, lo cual sugiere que no hay problemas significativos de multicolinealidad entre las variables en el modelo. Por lo tanto, podemos concluir que las variables regresoras están razonablemente independientes entre sí en términos de multicolinealidad, lo cual es favorable para la precisión de las estimaciones y las inferencias del modelo de regresión lineal.
+
+### C)
+
+```{r,echo=FALSE}
+
+# Ajustar el modelo inicial
+lineal_model_3 <- lm(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + 
+                     NfL_baseline + CRP_baseline + IL6_baseline, data = dev_val_data)
+
+# Aplicar el método paso a paso con criterio AIC
+modelo_seleccionado <- step(lineal_model_3, direction = "both", trace = 0)
+
+# Mostrar el resumen del modelo seleccionado
+summary(modelo_seleccionado)
+
+```
+Los resultados del stepwise regression concuerdan con los resultados del modelo anterior en el que se indicaba que 'NfL_baseline' es la úncia variable significativa, ya que en el stepwise regression únicamente se han seleccionado las variables 'NfL_baseline' y 'onset', las demás variables han sido descartadas. Además, utilizando tan solo estas 2 variables obtenemos un valor más alto para la R^2 ajustada (0.1555>0.1351), por lo tanto, este modelo con menos variables tiene un mejor ajuste a los datos que el modelo que usa todas las variables regresoras para las predicciones.
+
+Esto indica que las variables que han sido descartadas no aportan capacidad predictiva al modelo.
+
+### D)
+
+```{r,echo=FALSE,warning=FALSE,message=FALSE}
+
+library(pls)
+
+# Ajustar el modelo PLS
+modelo_pls <- plsr(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + 
+                   NfL_baseline + CRP_baseline + IL6_baseline, ncomp = 7, data = dev_val_data)
+# Determinar el número óptimo de componentes basado en RMSE
+validationplot(modelo_pls, val.type = "MSEP")
+
+```
+
+El número más razonable de componentes corresponde a 2, donde se encuentra el 'codo' del gráfico.
+
+```{r,echo=FALSE}
+# Obtener las componentes principales del modelo PLS
+scores <- predict(modelo_pls, type = "scores")
+
+# Crear un gráfico de dispersión de las componentes principales
+plot(scores[, 1], scores[, 2], main = "Diagrama de Dispersión de las Componentes Principales",
+     xlab = "Componente 1", ylab = "Componente 2")
+
+# Agregar línea de referencia en la componente 1
+abline(v = -200, col = "red", lty = 2)
+
+# Etiquetar los puntos que están por debajo de -200 en la componente 1
+points_below <- which(scores[, 1] < -200)
+text(scores[points_below, 1], scores[points_below, 2], labels = points_below, pos = 4, col = "red")
+
+
+```
+
+Observamos como el grueso de los valores se distribuye en la componente 1 alrededor del valor 0, existen 7 outliers que se extienden en el eje horizontal entre los valores -200 y -800. Estos puntos son: 53, 65, 52, 26, 75, 18 y 76
+
+Respecto al componente 2 los puntos parecen distribuirse bastante uniformemente a lo largo de todo el eje vertical, por lo tanto es complicado establecer agrupaciones y detectar outliers.
+
+### E)
+
+
+```{r,echo=FALSE}
+library(glmnet)
+
+# Definir las variables predictoras y la variable de respuesta
+predictors <- c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")
+response <- "ALSFRSR_baseline" 
+
+# Crear el conjunto de datos con las variables seleccionadas
+datos <- dev_val_data[, c(predictors, response)]
+
+# Separar las variables predictoras y la variable de respuesta
+X <- as.matrix(datos[, predictors])
+y <- datos[, response]
+
+# Ajustar el modelo LASSO con cv.glmnet para seleccionar el lambda óptimo
+lasso_model <- cv.glmnet(X, y, alpha = 1)  # alpha = 1 para regresión LASSO
+
+# Obtener el valor de lambda mínimo
+lambda_min <- lasso_model$lambda.min
+cat('Lambda mínimo:',lambda_min)
+
+# Obtener la fórmula del modelo con el lambda mínimo
+coeficientes <- coef(lasso_model, s = "lambda.min")
+print(coeficientes)
+
+
+```
+FÓRMULA:
+
+ALSFRSR_baseline=39.50032564+0.02715599×IL6_baseline−0.01759925×NfL_baseline
+
+El resultado del modelo LASSO con lambda mínimo de 0.32893625 indica un 'intercept' de 39.50032564, mostrando que 'IL6_baseline' tiene un efecto positivo de 0.02715599 en 'ALSFRSR_baseline' por unidad, mientras que 'NfL_baseline' tiene un efecto negativo de -0.01759925. Las variables 'BMI_baseline' y 'CRP_baseline' no contribuyen al modelo según los coeficientes estimados (.). Este método de regularización selecciona automáticamente las variables más relevantes, mejorando la interpretación y la generalización del modelo.
+
+### F)
+
+```{r,warning=FALSE,echo=FALSE}
+
+# Seleccionar solo las variables usadas en el modelo LASSO
+newx_lasso <- as.matrix(dev_val_data[, c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")])
+
+# Realizar las predicciones y calcular el RMSE
+predicciones_lasso_n <- predict(lasso_model, newx = newx_lasso)
+rmse_lasso_n <- sqrt(mean((dev_val_data$ALSFRSR_baseline - predicciones_lasso_n)^2))
+
+predicciones_pls_n <- predict(modelo_pls, newdata = dev_val_data, ncomp = 2)
+rmse_pls_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_pls_n)^2))
+
+# Mostrar los resultados de RMSE
+print(paste("RMSE para LASSO dev_val_data:", rmse_lasso_n))
+print(paste("RMSE para PLS dev_val_data:", rmse_pls_n))
+
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+# Seleccionar solo las variables usadas en el modelo LASSO
+newx_lasso_n <- as.matrix(val_2_data[, c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")])
+
+# Realizar las predicciones y calcular el RMSE
+predicciones_lasso_n <- predict(lasso_model, newx = newx_lasso_n)
+rmse_lasso_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_lasso_n)^2))
+
+predicciones_pls_n <- predict(modelo_pls, newdata = val_2_data, ncomp = 2)
+rmse_pls_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_pls_n)^2))
+
+# Mostrar los resultados de RMSE
+print(paste("RMSE para LASSO ValCohort2:", rmse_lasso_n))
+print(paste("RMSE para PLS ValCohort2:", rmse_pls_n))
+```
+Para dev_val_data, el RMSE es de 6.73 para LASSO y 5.36 para PLS, indicando que PLS tiene un mejor ajuste predictivo en este conjunto de datos.
+Para ValCohort2, el RMSE es de 4.95 para LASSO y 4.78 para PLS, mostrando que PLS tiene un mejor rendimiento predictivo en este conjunto de datos.
+
+El modelo PLS con 2 componentes muestra consistentemente un mejor rendimiento predictivo tanto en dev_val_data como en ValCohort2, basado en los valores más bajos de RMSE en ambos conjuntos de datos.
+
+## 4. Apéndices
+
+Ejercicio 1 A)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Mostrar el número de pacientes que sobrevivieron 36 meses o más
+num_survived_36_months <- nrow(data %>% filter(months_survived >= 36))
+cat("Número de pacientes que sobrevivieron 36 meses o más:", num_survived_36_months, "\n")
+
+# Calcular el porcentaje de supervivencia a los 36 meses
+total_patients <- nrow(data)
+surv_percentage_36_months <- (num_survived_36_months / total_patients) * 100
+
+cat("Porcentaje de pacientes que sobrevivieron 36 meses o más:", surv_percentage_36_months, "%\n")
+
+#-------------------------------------------------------------------------------------------------------------------------
+
+
+
+# Ajustar el modelo de regresión logística
+logistic_model <- glm(survived_36_months ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline + IL6_baseline, 
+                      data = dev_val_data, 
+                      family = binomial())
+
+# Resumen del modelo
+summary(logistic_model)
+
+# Identificar las variables significativas
+significant_vars <- summary(logistic_model)$coefficients[,4] < 0.05
+significant_vars <- names(significant_vars[significant_vars])
+cat("Las variables significativas son:", significant_vars, "\n")
+
+
+
+```
+
+Ejercicio 1 C)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Ajustar el modelo de regresión logística
+logistic_model_no_IL6 <- glm(survived_36_months ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline,# + IL6_baseline, 
+                      data = dev_val_data, 
+                      family = binomial())
+
+# Resumen del modelo
+summary(logistic_model_no_IL6)
+
+# Calculamos matriz de correlaciones
+cor(data[, c("IL6_baseline", "CRP_baseline", "NfL_baseline", "age", "BMI_baseline")])
+
+```
+
+Ejercicio 1 E)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(caret)
+
+#val_2_data
+# Predicciones de probabilidades
+predicted_probabilities <- predict(logistic_model, newdata = val_2_data, type = "response")
+
+# Convertir probabilidades en clases
+predicted_classes <- ifelse(predicted_probabilities > 0.5, 1, 0)
+
+# Crear la matriz de confusión
+conf_matrix <- confusionMatrix(as.factor(predicted_classes), as.factor(val_2_data$survived_36_months))
+
+# Mostrar la matriz de confusión
+print(conf_matrix)
+
+```
+
+Ejercicio 2 A)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(tidyverse)
+
+# Ajustar el modelo de regresión lineal
+linear_model <- lm(ALSFRSR_baseline ~ NfL_baseline + onset + sex + age + sex:age, data = dev_val_data)
+
+# Resumen del modelo
+summary(linear_model)
+
+```
+
+Ejercicio 2 C)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Gráficos de diagnóstico del modelo
+par(mfrow = c(2, 2))
+plot(model)
+
+```
+
+Ejercicio 2 D)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(MASS)
+
+# Ajustar el modelo de regresión robusta usando el método Huber
+robust_model <- rlm(ALSFRSR_baseline ~ NfL_baseline + onset + sex + age + sex:age, data = dev_val_data)
+
+# Resumen del modelo robusto
+summary(robust_model)
+
+hweights <- data.frame(state = dev_val_data$ALSFRSR_baseline, resid = robust_model$resid, weight = robust_model$w)
+# filtramos aquellas ponderaciones bajas porque son las que han sido corregidas por el modelo robusto y asignadas un menor weight para disminuir su influencia debido a que son problematicas o outliers.
+problematic_obs_robust <- which(hweights$weight < 1)
+
+# Imprimir las observaciones problemáticas
+cat('Observaciones problematicas según el método Huber:',problematic_obs_robust)
+
+
+# Identificar observaciones problemáticas en el modelo OLS
+# Utilizando la distancia de Cook como referencia
+cooks_distance <- cooks.distance(model)
+threshold_cooks <- 4 / (nrow(dev_val_data) - length(coef(linear_model)))
+problematic_obs_OLS <- which(cooks_distance > threshold_cooks)
+
+# Comparar las observaciones problemáticas entre el modelo OLS y el modelo robusto
+common_problematic_obs <- intersect(problematic_obs_robust, problematic_obs_OLS)
+
+# Imprimir las observaciones problemáticas comunes
+cat('Observaciones problematicas identificadas en el modelo OLS y el modelo de regresión robusta según el método Huber:',common_problematic_obs)
+
+```
+
+Ejercicio 2 E)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+
+# Obtener los coeficientes y p-valores del modelo OLS
+ols_coef <- coef(summary(linear_model))[, "Estimate"]
+ols_pvalues <- coef(summary(linear_model))[, "Pr(>|t|)"]
+
+# Obtener los coeficientes y p-valores del modelo robusto
+robust_coef <- coef(robust_model)
+robust_summary <- summary(robust_model)
+robust_pvalues <- robust_summary$coefficients[, "t value"]
+
+# Comparar la significancia de los coeficientes
+significancia_ols <- ols_pvalues < 0.1
+significancia_robust <- robust_pvalues < 0.1
+
+# Mostrar los resultados
+print("Significancia de coeficientes para OLS:")
+print(significancia_ols)
+
+print("Significancia de coeficientes para modelo robusto:")
+print(significancia_robust)
+
+```
+
+Ejercicio 3 A)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Ajustar el modelo de regresión lineal
+lineal_model_2 <- lm(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + NfL_baseline + CRP_baseline + IL6_baseline, 
+                      data = dev_val_data, 
+                      )
+summary(lineal_model_2)
+
+```
+
+Ejercicio 3 C)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Ajustar el modelo inicial
+lineal_model_3 <- lm(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + 
+                     NfL_baseline + CRP_baseline + IL6_baseline, data = dev_val_data)
+
+# Aplicar el método paso a paso con criterio AIC
+modelo_seleccionado <- step(lineal_model_3, direction = "both", trace = 0)
+
+# Mostrar el resumen del modelo seleccionado
+summary(modelo_seleccionado)
+
+```
+
+Ejercicio 3 D)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(pls)
+
+# Ajustar el modelo PLS
+modelo_pls <- plsr(ALSFRSR_baseline ~ age + sex + BMI_baseline + onset + 
+                   NfL_baseline + CRP_baseline + IL6_baseline, ncomp = 7, data = dev_val_data)
+# Determinar el número óptimo de componentes basado en RMSE
+validationplot(modelo_pls, val.type = "MSEP")
+
+```
+
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Obtener las componentes principales del modelo PLS
+scores <- predict(modelo_pls, type = "scores")
+
+# Crear un gráfico de dispersión de las componentes principales
+plot(scores[, 1], scores[, 2], main = "Diagrama de Dispersión de las Componentes Principales",
+     xlab = "Componente 1", ylab = "Componente 2")
+
+# Agregar línea de referencia en la componente 1
+abline(v = -200, col = "red", lty = 2)
+
+# Etiquetar los puntos que están por debajo de -200 en la componente 1
+points_below <- which(scores[, 1] < -200)
+text(scores[points_below, 1], scores[points_below, 2], labels = points_below, pos = 4, col = "red")
+
+
+```
+
+Ejercicio 3 E)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(glmnet)
+
+# Definir las variables predictoras y la variable de respuesta
+predictors <- c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")
+response <- "ALSFRSR_baseline" 
+
+# Crear el conjunto de datos con las variables seleccionadas
+datos <- dev_val_data[, c(predictors, response)]
+
+# Separar las variables predictoras y la variable de respuesta
+X <- as.matrix(datos[, predictors])
+y <- datos[, response]
+
+# Ajustar el modelo LASSO con cv.glmnet para seleccionar el lambda óptimo
+lasso_model <- cv.glmnet(X, y, alpha = 1)  # alpha = 1 para regresión LASSO
+
+# Obtener el valor de lambda mínimo
+lambda_min <- lasso_model$lambda.min
+cat('Lambda mínimo:',lambda_min)
+
+# Obtener la fórmula del modelo con el lambda mínimo
+coeficientes <- coef(lasso_model, s = "lambda.min")
+print(coeficientes)
+```
+
+Ejercicio 3 F)
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Seleccionar solo las variables usadas en el modelo LASSO
+newx_lasso <- as.matrix(dev_val_data[, c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")])
+
+# Realizar las predicciones y calcular el RMSE
+predicciones_lasso_n <- predict(lasso_model, newx = newx_lasso)
+rmse_lasso_n <- sqrt(mean((dev_val_data$ALSFRSR_baseline - predicciones_lasso_n)^2))
+
+predicciones_pls_n <- predict(modelo_pls, newdata = dev_val_data, ncomp = 2)
+rmse_pls_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_pls_n)^2))
+
+# Mostrar los resultados de RMSE
+print(paste("RMSE para LASSO dev_val_data:", rmse_lasso_n))
+print(paste("RMSE para PLS dev_val_data:", rmse_pls_n))
+
+#-------------------------------------------------------------------------------------------------------------------------------------
+
+# Seleccionar solo las variables usadas en el modelo LASSO
+newx_lasso_n <- as.matrix(val_2_data[, c("BMI_baseline", "IL6_baseline", "NfL_baseline", "CRP_baseline")])
+
+# Realizar las predicciones y calcular el RMSE
+predicciones_lasso_n <- predict(lasso_model, newx = newx_lasso_n)
+rmse_lasso_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_lasso_n)^2))
+
+predicciones_pls_n <- predict(modelo_pls, newdata = val_2_data, ncomp = 2)
+rmse_pls_n <- sqrt(mean((val_2_data$ALSFRSR_baseline - predicciones_pls_n)^2))
+
+# Mostrar los resultados de RMSE
+print(paste("RMSE para LASSO ValCohort2:", rmse_lasso_n))
+print(paste("RMSE para PLS ValCohort2:", rmse_pls_n))
+
+```
+

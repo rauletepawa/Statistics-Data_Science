@@ -1,0 +1,283 @@
+---
+title: "PAC_1"
+author: "Raul Perez Prats"
+date: "2023-10-25"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# SECCIÓ 1
+
+```{r,echo=FALSE}
+setwd("D:/Bioinformatica/Assignatures/Software per a l'analisi de dades/PAC_1")
+```
+## Exercici 1
+
+### 1.1
+```{r}
+#Carregar Dataframe
+sleep_health <- read.csv('Sleep_health_and_lifestyle_dataset-1.csv', sep = ',')
+#mostrar head
+head(sleep_health)
+#mostrar tail
+tail(sleep_health)
+```
+### 1.2
+
+```{r}
+#nom de les variables que formen el conjunt de dades
+names(sleep_health)
+#descripció tipus de dades
+str(sleep_health)
+#Grandaria de la mostra i registres
+dim(sleep_health) # 374 registres
+length(sleep_health) # 13 variables
+#Valoració de l'existència de valors nuls o missing
+table(is.na(sleep_health))
+#Altres aspectes rellevants
+summary(sleep_health)
+```
+## Exercici 2
+
+### 2.1
+```{r}
+library("survival")
+data(retinopathy)
+#mostrar head
+head(retinopathy)
+#mostrar tail
+tail(retinopathy)
+#nom de les variables que formen el conjunt de dades
+names(retinopathy)
+#descripció tipus de dades
+str(retinopathy)
+#Grandaria de la mostra i registres
+dim(retinopathy) # 374 registres
+length(retinopathy) # 13 variables
+#Valoració de l'existència de valors nuls o missing
+table(is.na(retinopathy))
+#Altres aspectes rellevants
+summary(retinopathy)
+```
+Es un dataset net, no hi ha valors nuls ni canvis rellevants a realitzar per a transformar les dades.
+L'únic canvi coherent a realitzar es canviar el tipus de variable de les columnes trt i , que corresponen al tipus factor ja que son categòriques:
+```{r}
+retinopathy$trt <- factor(retinopathy$trt)
+retinopathy$status <- factor(retinopathy$status)
+#comprobem els canvis efectuats
+str(retinopathy)
+```
+### 2.2
+
+```{r}
+#Exportem diabetic_retino a un csv
+file_path <- "diabetic_retino.csv"
+write.csv(retinopathy, file = file_path, row.names = FALSE)
+```
+
+## Exercici 3
+
+### 3.1
+
+Accedint aqui tenim la documentació de TOTS els datasets del paquet MASS: https://cran.r-project.org/web/packages/MASS/MASS.pdf
+```{r}
+library("MASS")
+data("Aids2")
+View(Aids2)
+```
+
+Dataset escollit per a explorar la influència del SIDA en Pacients australians en funció de la edad, el sexe, tipus de transmissió, etc.
+En aquest dataset podem trobar les següents variables:
+```{r}
+names(Aids2)
+```
+Segueix la següent estructura:
+```{r}
+str(Aids2)
+```
+De les 7 variables 4 son factors i 3 son numeros enters
+Es un dataset molt útil ja que el nombre d'observacions i la qualitat de les dades es rellevant, ja que no hi ha nuls i sabem d'on procedeixen (Venables, W. N. and Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth edition. Springer)
+```{r}
+table(is.na(Aids2))
+```
+Aquestes dues condicions mencionades el fa un dataset perfecte per a poder explorar la possibilitat de predir si un pacient de SIDA sobreviurà o no en funció de les variables del Dataset
+Aquestes prediccions es poden realitzar mitjançant algoritmes de classificació de Machine Learning (random forest, SVM, perceptron...)
+
+### 3.2
+```{r}
+# info més rellevant
+head(Aids2)
+summary(Aids2)
+```
+Amb el summary podem fer-nos una ràpida idea de què compon el nostre dataset ja que trobem les variables i un breu resum de quines categories son les més freqüents
+
+# SECCIÓ 2
+
+## Exercici 4
+
+### 4.1 
+```{r,message=FALSE}
+# Definiu dos data frame d'acord amb la variable Gender per als valors Male i Female
+library(dplyr)
+male_data <- sleep_health %>% filter(Gender == "Male")
+female_data <- sleep_health %>% filter(Gender == "Female")
+# Exportar CSV
+write.csv(male_data, file = "sleep_health_m.csv", row.names = FALSE)
+write.csv(female_data, file = "sleep_health_f.csv", row.names = FALSE)
+```
+### 4.2
+```{r}
+# mitjana d'edat de les dones l'ocupació de les quals sigui Nurse:
+mean(female_data$Age[female_data$Occupation == 'Nurse'])
+mean(sleep_health$Age[sleep_health$Occupation == 'Nurse' & sleep_health$Gender == 'Female'])
+# Qualitat son i stress level del grup
+mean(sleep_health$Stress.Level[sleep_health$Occupation == 'Nurse' & sleep_health$Gender == 'Female'])
+mean(sleep_health$Quality.of.Sleep[sleep_health$Occupation == 'Nurse' & sleep_health$Gender == 'Female'])
+```
+Tenint en compte que els valors de Qualitat del son i de Estress van del 1 al 10:
+Les enfermeres tenen uns nivells normals d'estress, ja que depenent del torn i de la especialització pot ser una feina estressant o molt tranquila, per això la mitjana acaba balancejant-se en un valor mitjà. 
+
+Al dataset s'observa justament això: molts individus amb valors 3 d'estres i molts individus amb valors de 8 o 9.
+
+Les enfermeres tenen relativament una bona qualitat del son tot i que encara hi ha marge de millora per a alguns individus.
+
+### 4.3
+```{r}
+#sleep_max
+sleep_max <- sleep_health %>% filter(Sleep.Duration == max(sleep_health$Sleep.Duration))
+#sleep_min
+sleep_min <- sleep_health %>% filter(Sleep.Duration == min(sleep_health$Sleep.Duration))
+```
+Hi ha 13 individus que dormen un maxim de 8.5 h.
+
+Hi ha només 2 individus que dormen el minim de 5.8.
+
+Tots els individus dels dos datasets (min i max) son 'Female'. 
+
+Els individus sleep min son científiques relativament joves, deuen estar acabant el posdoctorat jeje, tenen apnea del son i alts nivells d'estrés entre altres, factors que disminueixen activament el temps i la qualitat del son.
+
+Els individus sleep max son enginyieres de mitjana edat-avançada amb molt bona qualitat del son, baixos nivells d'estrés i no presenten transtorns del son.
+
+### 4.4
+```{r}
+x<-sleep_health$Occupation[sleep_health$Quality.of.Sleep < mean(sleep_health$Quality.of.Sleep) & sleep_health$BMI.Category == 'Overweight']
+table(x)
+```
+Els valors més significatius son les professions de profesor, venedor i enfermer, ja que hi ha més de 30 individus al dataset amb aquestes caracterísitques de qualitat del son inferior a la mitjana i sobrepés.
+
+Pot ser que les enfermeres siguin propenses a tenir poca qualitat del son degut als torns que afecten al ritme circadià de l'organisme, que també està correlacionat amb el sobrepés
+
+En el cas dels profesors pot ser perquè aquesta es una feina bastant estressant (sobretot a educació secundaria obligatoria) i molt sedentària, que també afavoreix al sobrepés
+
+Salesperson es possible que també sigui una feina molt sendentaria però actualment desconec el motiu per el qual podrien tenir una qualitat del son inferior a la mitjana
+
+### 4.5
+```{r}
+selected_columns <- sleep_health[, c("Gender", "Age", "Occupation", "Stress.Level")]
+# Convertim a matriu
+matrix <- as.matrix(selected_columns)
+```
+Aquest tipus de format seria interessant per a fer transformacions espacials sobre les dades o volguessim calcular la relació espacial entre variables, com angle, distancia, etc entre els vectors (variables).
+
+# SECCIÓ 3
+
+## Exercici 5
+
+### 5.1 
+
+#### Diagrama de caixes Sleep_duration i Stress_level
+
+```{r,echo=FALSE}
+boxplot(sleep_health$Sleep.Duration,sleep_health$Stress.Level, names = c("Sleep Duration","Stress Level"))
+title("Sleep Duration vs Stress Level")
+```
+
+S'observa que la distribució de les hores de son dels pacients es troba majoritàriament entre les 6 i les 8h, en canvi hi ha una major variació pels valors de nivells de estrés, ja que la distribució de valors es molt més àmplia, trobant-se la mitjana al 5.
+
+### 5.2 
+
+#### Model de regressió per a les dues variables anteriors i un diagrama de punts que ajusta al model
+```{r,echo=FALSE}
+Sleep_duration<-sleep_health$Sleep.Duration
+Stress_levels<-sleep_health$Stress.Level
+plot(Stress_levels,Sleep_duration)
+title("Correlation Sleep Duration vs Stress Level")
+```
+
+```{r}
+modelo<-lm(Stress_levels~Sleep_duration, data=sleep_health)  #model amb ajust de R^2 = 0.6578
+summary(modelo)
+```
+Podem observar com a mesura que augmenten els nivells d'estres va disminuint les hores de son del pacient de forma progressiva, trobant un punt d'inflexió important en els nivells d'estres superiors a 6 on la durada del son es veu disminuida per sota de 7h.
+
+### 5.3 
+#### Matriu de correlació del conjunt de dades sleep_health
+```{r,echo=FALSE}
+numeric_data <- sleep_health[c("Sleep.Duration","Stress.Level")]
+correlation_matrix <- cor(numeric_data)
+print(correlation_matrix)
+```
+Es pot afirmar que hi ha una gran correlació entre aquestes dues variables ja que el valor es molt proper a 1 al ser el vaor -0.811 indica una correlació negativa, quan major es l'estres menor es la durada del son.
+
+### 5.4 
+```{r}
+residuos<-rstandard(modelo) # residuos estándares del modelo ajustado
+qqnorm(residuos) # gráfico de cuantiles de los residuos estandarizados 
+qqline(residuos) # dibujamos la reta en el gráfico anterior
+```
+## Exercici 6
+
+### 6.1 
+
+#### Resum estadístic de sleep_health
+
+```{r}
+summary(sleep_health)
+str(sleep_health)
+```
+### 6.2 
+
+#### Taules de freqüències realtives i absolutes de les variables Occupation i Sleep_duration
+```{r}
+freq_occ<-table(sleep_health$Occupation)
+freq_occ
+prop.table(freq_occ)
+freq_sleep<-table(sleep_health$Sleep.Duration)
+freq_sleep
+prop.table(freq_sleep)
+#Taula creuada
+cross_tab <- table(sleep_health$Occupation, sleep_health$Sleep.Duration)
+cross_tab
+```
+Amb la taula de freqüencies creuades podem observar les hores que dorm el nombre de pacients que pertanyen a la mateixa professió.
+Observem que els doctors i les infermeres son de les persones que dormen més i menys, ja que aproximadament la meitat dormen per sota de 6.2hores i l'altra meitat dormen per sobre de 7.6 hores.
+Els enginyiers son els pacients que dormen el major nombre d'hores.
+
+### 6.3
+
+#### Histograma quality of sleep i diagrama de barres occupation
+```{r}
+par(mfrow = c(1, 2))
+Qualitat_del_son <- sleep_health$Quality.of.Sleep
+hist(Qualitat_del_son)
+occupation_freq <- table(sleep_health$Occupation)
+barplot(occupation_freq, main = "Frequencia D'ocupació", xlab = "Ocupació", ylab = "Frequencia")
+
+```
+
+### 6.4 
+
+#### Qplot amb ggplot2
+```{r,message=FALSE,echo=FALSE}
+library(ggplot2)
+qplot(x = Gender, y = Stress.Level, data = sleep_health,colour = I("red")) +
+  labs(x = "Gender", y = "Stress Level") +
+  ggtitle("Scatter Plot of Gender vs. Stress Level")
+```
+
+Trobem que tan homes com dones tenen uns nivells d'estrés semblants ja que els punts es distribueixen per tot el rang de la variable y en els dos gèneres

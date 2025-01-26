@@ -1,0 +1,250 @@
+---
+title: "PEC_2_Estadistica"
+author: "Raúl Pérez Prats"
+date: "2024-01-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+demora <- read.csv('demora.csv',sep=';')
+summary(demora)
+str(demora)
+```
+
+## Including Plots
+
+```{r}
+set.seed(42) 
+
+demora300 <- demora[sample (1: nrow (demora), 300, replace = FALSE),]
+
+logdemora<-log(demora300$demora)
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{r}
+
+shapiro_test_demora <- shapiro.test(demora300$demora)
+
+shapiro_test_demora
+
+shapiro_test_logdemora <- shapiro.test(logdemora)
+
+shapiro_test_logdemora
+
+```
+
+```{r}
+# Create a QQ plot
+qqnorm(logdemora)
+qqline(logdemora, col = 2)  # Add a reference line
+
+# Add a title
+
+```
+
+```{r}
+anova_demora<-aov(demora~dolor,data=demora300) 
+summary(anova_demora)
+
+```
+
+```{r}
+library(dunn.test)
+
+# Realizar el test de Kruskal-Wallis (usando el ejemplo anterior)
+kruskal_test_result <- kruskal.test(demora ~ dolor, data=demora300)
+kruskal_test_result
+# Realizar la prueba post hoc de Dunn
+posthoc_dunn <- dunn.test(demora300$demora, demora300$dolor, method = "bonferroni", )
+
+# Imprimir los resultados
+print(posthoc_dunn)
+
+```
+```{r}
+
+df <- data.frame(data = demora300$demora, groups = factor(demora300$dolor))
+
+# Graficar un boxplot
+boxplot(demora300$demora ~ demora300$dolor, col = c("red", "green", "blue"), main = "Boxplot de Demora según intensidad de dolor",
+        xlab = "Grupos", ylab = "Demora")
+
+# Agregar una leyenda
+legend("topright", legend = levels(df$groups), fill = c("red", "green", "blue"), title = "Grupos")
+```
+
+```{r}
+
+#U mann whitney 
+mann_whitney_test_result <- wilcox.test(demora ~ noche, data = demora300)
+mann_whitney_test_result
+```
+
+```{r}
+
+# Crear un boxplot
+boxplot(demora ~ noche, data = demora300, col = c("lightblue", "lightgreen"),
+        main = "Boxplot demora Noche", xlab = "Grupos", ylab = "Valores")
+
+# Agregar leyenda
+legend("topright", legend = levels(demora300$noche), fill = c("lightblue", "lightgreen"))
+```
+
+```{r}
+library(car)
+
+levene_test_result <- leveneTest(logdemora~demora300$dolor)
+
+print(levene_test_result)
+
+anova_demora<-aov(logdemora~demora300$dolor) 
+summary(anova_demora)
+```
+
+```{r}
+# Realizar el test de Kruskal-Wallis 
+kruskal_test_result <- kruskal.test(logdemora ~ demora300$dolor)
+kruskal_test_result
+# Realizar la prueba post hoc de Dunn
+posthoc_dunn <- dunn.test(logdemora, demora300$dolor, method = "bonferroni", )
+
+# Imprimir los resultados
+print(posthoc_dunn)
+```
+
+```{r}
+library(car)
+
+levene_test_result <- leveneTest(logdemora~demora300$noche)
+levene_test_result
+
+```
+
+```{r}
+f_test_result <- var.test(logdemora~demora300$noche)
+f_test_result
+
+```
+
+```{r}
+
+# Realizar t-test para varianzas separadas
+t_test_result <- t.test(logdemora~demora300$noche, var.equal = FALSE)
+
+# Imprimir los resultados
+print(t_test_result)
+```
+
+```{r}
+# Crear un boxplot
+boxplot(logdemora ~ demora300$noche, col = c("lightblue", "lightgreen"),
+        main = "Boxplot logdemora Noche", xlab = "Grupos", ylab = "Valores")
+
+# Agregar leyenda
+legend("topright", legend = levels(demora300$noche), fill = c("lightblue", "lightgreen"))
+
+```
+
+```{r}
+
+df <- data.frame(data = logdemora, groups = factor(demora300$dolor))
+
+# Graficar un boxplot
+boxplot(logdemora ~ demora300$dolor, col = c("red", "green", "blue"), main = "Boxplot de logdemora según intensidad de dolor",
+        xlab = "Grupos", ylab = "Demora")
+
+# Agregar una leyenda
+legend("topright", legend = levels(df$groups), fill = c("red", "green", "blue"), title = "Grupos")
+
+```
+
+```{r}
+tabla_contingencia <- table(demora300$dolor, demora300$noche)
+
+tabla_contingencia
+
+resultado_chi_cuadrado <- chisq.test(tabla_contingencia)
+
+resultado_chi_cuadrado
+
+```
+
+```{r}
+# Seleccionar una muestra de 25 casos
+muestra <- sample(demora300$demora, 25, replace = TRUE)
+
+# Función para obtener el intervalo de confianza mediante bootstrap
+bootstrap_ci <- function(data, B = 1000, alpha = 0.05) {
+  n <- length(data)
+  bootstrap_samples <- matrix(sample(data, n * B, replace = TRUE), ncol = B)
+  
+  # Calcular la media para cada muestra bootstrap
+  means <- colMeans(bootstrap_samples)
+  
+  # Calcular el percentil alpha/2 y 1 - alpha/2
+  lower_bound <- quantile(means, alpha / 2)
+  upper_bound <- quantile(means, 1 - alpha / 2)
+  
+  # Retornar el intervalo de confianza
+  return(c(lower_bound, upper_bound))
+}
+
+# Calcular el intervalo de confianza mediante bootstrap
+intervalo_confianza_bootstrap <- bootstrap_ci(muestra)
+
+# Imprimir los resultados
+print(intervalo_confianza_bootstrap)
+```
+
+```{r}
+bootstrap <- function(data, B = 1000, alpha = 0.05) {
+  n <- length(data)
+  bootstrap_samples <- matrix(sample(data, n * B, replace = TRUE), ncol = B)
+  
+  # Calcular la media para cada muestra bootstrap
+  means <- colMeans(bootstrap_samples)
+  return (means)
+}
+
+sample_means <- bootstrap(muestra)
+hist(sample_means,
+     main = 'Histogram of bootstraped sample means')
+
+```
+
+```{r}
+datos <- demora300$demora
+media_muestral <- mean(datos)
+desviacion_estandar_muestral <- sd(datos)
+
+# Tamaño de la muestra
+n <- length(datos)
+
+# Nivel de confianza del 95%
+nivel_confianza <- 0.95
+
+# Calcula el valor crítico de la distribución t
+t_critico <- qt((1 + nivel_confianza) / 2, df = n - 1)
+
+# Calcula el intervalo de confianza
+intervalo_confianza <- c(
+  media_muestral - t_critico * (desviacion_estandar_muestral / sqrt(n)),
+  media_muestral + t_critico * (desviacion_estandar_muestral / sqrt(n))
+)
+
+intervalo_confianza
+```
+
+```{r}
+hist(muestra)
+```
+
+```{r}
+```

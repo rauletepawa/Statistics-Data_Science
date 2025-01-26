@@ -1,0 +1,889 @@
+---
+title: "Regresión Modelos Métodos PEC 1"
+author: "Raúl Pérez Prats"
+date: "2024-04-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Tabla de contenidos
+
+## 1. Ejercicio 1 
+
+## 2. Ejercicio 2
+
+## 3. Ejercicio 3
+
+## 4. Apéndices
+
+---
+
+## 1.
+
+
+
+```{r,message=FALSE, warning=FALSE,echo = FALSE}
+data <- read.csv('framingham.csv')
+
+mydat_no_NA <- na.omit(data) #eliminamos missing values
+
+```
+
+
+
+### A)
+
+
+```{r}
+lmod_inicial <- lm(sysBP ~ BMI * male, data=mydat_no_NA) # Modelo con interacción entre BMI y male
+
+summary(lmod_inicial) # Mostrar resumen del modelo
+
+```
+En el resumen del modelo, se evidencia una relación significativa entre el índice de masa corporal (BMI) y la presión arterial sistólica (sysBP), ya que el p-valor asociado es menor que 0.05. Esto indica que el BMI influye de manera significativa en las predicciones de sysBP en nuestro modelo lineal. Específicamente, por cada unidad de aumento en BMI, se espera un incremento de aproximadamente 2.05 en sysBP.
+
+De manera similar, la variable de sexo (male) también muestra una influencia significativa en la presión arterial sistólica, con un p-valor menor que 0.05. Los hombres presentan una presión arterial sistólica más alta en aproximadamente 15.71 unidades en comparación con las mujeres.
+
+Además, la interacción entre las variables BMI y male también resulta ser significativa (p-valor < 0.05). Esto indica que la relación entre BMI y sysBP varía entre hombres y mujeres. Específicamente, por cada unidad de aumento en BMI, la presión arterial sistólica en hombres disminuye en aproximadamente 0.73 unidades más que en mujeres. En resumen, tanto el BMI como el sexo tienen efectos significativos en la presión arterial sistólica, y esta relación se ve influenciada por la interacción entre ambos factores.
+
+El valor de R-cuadrado ajustada es 0.1174 e indica que tan solo el 12% (aprox) de la varianza de la presión arterial sistólica es explicado por lmod_inicial. Pese a que este modelo es significativo (p-valor < 0.05) hay un 88% de la varianza de sysBP no explicada y, por lo tanto, es necesario incluir más variables para explicar la varianza de sysBP.
+
+### B)
+
+
+```{r,message=FALSE, warning=FALSE,echo = FALSE}
+# Dibujar el gráfico de dispersión
+plot(mydat_no_NA$BMI, mydat_no_NA$sysBP, col = ifelse(mydat_no_NA$male == 1, "blue", "red"), 
+     xlab = "BMI", ylab = "sysBP", main = "Gráfico de dispersión con rectas de regresión en hombes y mujeres")
+
+# Agregar las rectas de regresión para hombres y mujeres
+abline(lm(sysBP ~ BMI * male, data = mydat_no_NA[mydat_no_NA$male == 1,]), col = "blue")
+abline(lm(sysBP ~ BMI * male, data = mydat_no_NA[mydat_no_NA$male == 0,]), col = "red")
+
+# Agregar leyenda
+legend("topright", legend = c("Hombres", "Mujeres"), col = c("blue", "red"), pch = 1)
+
+
+```
+
+Las rectas de regresión nos permiten observar que para BMI inferiores a 25 las mujeres tienen un valor de sysBP inferior al de los hombres, mientras que a partir de valores de BMI superiores a 25 y especialmente en valores de BMI altos las mujeres presentan valores de sysBP superiores a los hombres.
+
+No obstante, la R-cuadrado ajustada (calculada en el apartado anterior) es del 12%, no podemos generalizar estas conclusiones a partir de las rectas de regresión, ya que el modelo no explica la mayor parte de la varianza del valor sysBP (88%). 
+
+Es por este motivo que si nos centramos en el gráfico de dispersión observamos una nube de puntos muy variable en el que tanto hombres y mujeres estan distribuidos sin una segmentación clara a simple vista.
+
+### C)
+
+```{r,echo=FALSE}
+# Calcular los intervalos de confianza al 99% para los coeficientes del modelo
+confianza_coeficientes <- confint(lmod_inicial, level = 0.99)
+print(confianza_coeficientes)
+
+# Calcular una estimación de la varianza del error en el mismo modelo
+varianza_error <- sigma(lmod_inicial)
+cat('Varianza del error: ', varianza_error)
+```
+### D)
+
+```{r}
+
+# Estimar el modelo de regresión lineal múltiple ampliado
+lmod_ampliado <- lm(sysBP ~ BMI * male + age + totChol + heartRate + currentSmoker + cigsPerDay + diabetes + glucose, data = mydat_no_NA)
+
+# Mostrar un resumen del modelo
+summary(lmod_ampliado)
+
+
+```
+Las hipótiesis que planteamos para testear el modelo son las siguientes:
+
+- Hipótesis nula (H0): El modelo no explica de manera significativa la variabilidad de la variable de respuesta (sysBP). Por lo tanto, todos los coeficientes de regresión en el modelo son iguales a cero.
+
+- Hipótesis alternativa (H1): El modelo explica de manera significativa la variabilidad de la variable de respuesta (sysBP). Al menos uno de los coeficientes de regresión en el modelo no es igual a cero.
+
+Según el P-valor del test F (2.2e-16<0.05) el modelo es signficativo, consecuentemente, rechazamos H0 y así concluimos con que al menos uno de los coeficientes de regresión no es igual a cero.
+
+Las variables significativas para este modelo son BMI, age, totChol, heartRate, glucose y la interacción BMI:male.
+
+cigsPerDay es una variable NO signficativa (p-valor=0.28902>0.05) y por lo tanto no existe una relación significativa entre la cantidad de cigarrillos fumados por día y la presión arterial sistólica en este modelo.
+
+### E)
+
+```{r}
+# Estimar el modelo de regresión lineal múltiple reducido
+lmod_reducido <- lm(sysBP ~ BMI * male + age + totChol + heartRate + glucose, data = mydat_no_NA)
+summary(lmod_reducido)
+
+```
+Las hipótiesis que planteamos para testear el si podemos reducir el modelo son las siguientes:
+
+H0: β_1 = β_2 = β_3 = 0 (donde β_1, β_2, y β_3 son los coeficientes de las variables currentSmoker, cigsPerDay y diabetes respectivamente en el modelo completo).
+H1: al menos uno de los coeficientes β_1, β_2, o β_3 no es igual a cero.
+
+```{r,echo=FALSE}
+# Comparar los dos modelos utilizando el test de razón de verosimilitudes
+anova_test <- anova(lmod_reducido, lmod_ampliado, test = "Chisq")
+
+# Mostrar los resultados del test
+print(anova_test)
+
+``` 
+Para poder hacer un contraste de hipótesis utilizamos un Likelihood Ratio Test (LRT) en una distribución chi-cuadrado.
+
+El p-valor>0.05 indica que no hay suficiente evidencia para rechazar H0 y, por lo tanto,  los coeficientes de las variables currentSmoker, cigsPerDay y diabetes son igual a 0. 
+
+Este resultado demuestra que podemos utilitzar el modelo reducido. Además, si observamos su R-cuadrada ajustada (0.2667) podemos ver que se trata del mismo valor que la R-cuadrada ajustada del modelo ampliado, esto significa que el modelo reducido explica el mismo porcentaje de la varianza de sysBP con 3 variables menos, ya que no son variables significativas para la predicción de sysBP.
+
+### F)
+
+Para comprobar que los valores observados no suponen una extrapolación analizamos los rangos de las variables:
+
+```{r,message=FALSE, warning=FALSE,echo = FALSE}
+print('Summary BMI')
+summary(mydat_no_NA$BMI)
+print('Summary Age')
+summary(mydat_no_NA$age)
+print('Summary totChol')
+summary(mydat_no_NA$totChol)
+print('Summary heartRate')
+summary(mydat_no_NA$heartRate)
+print('Summary glucose')
+summary(mydat_no_NA$glucose)
+
+```
+Podemos observar que los valores BMI= 29, age = 64, male = 0, totCHol = 200, heartRate = 70 y glucose = 96 son valores que se encuentran dentro de los rangos establecidos en el summary de estas variables, por lo tanto los valores observados no suponen una extrapolación
+
+```{r,message=FALSE, warning=FALSE,echo = FALSE}
+# Calcular la matriz de correlación
+cor_matrix <- cov2cor(vcov(lmod_reducido))
+
+# Calcular el leverage
+leverage <- hatvalues(lmod_reducido)
+
+# Encontrar el índice del valor de leverage máximo
+max_leverage_index <- which.max(leverage)
+
+# Calcular el elipsoide de predicción
+elipsoide <- qnorm(0.975) * sqrt(leverage[max_leverage_index] * (1 + rowSums(cor_matrix^2)))
+
+# Graficar el elipsoide
+plot(NA, xlim = c(20, 35), ylim = c(80, 220), xlab = "BMI", ylab = "sysBP", main = "Elipsoide de Predicción con leverage máximo")
+points(mydat_no_NA$BMI, mydat_no_NA$sysBP)
+points(29, predict(lmod_reducido, newdata = data.frame(BMI=29, male=0, age=64, totChol=200, heartRate=70, glucose=96)), col = "red", pch = 19)
+contour(outer(mydat_no_NA$BMI, elipsoide, "-"), add = TRUE) # Comprobamos que la variable se halla en el elipsoide de leverage maximo
+legend("topleft", legend = c("Datos", "Nuevo individuo"), col = c("black", "red"), pch = c(1, 19))
+
+# Calcular el intervalo de predicción al 95%
+new_data <- data.frame(BMI=29, male=0, age=64, totChol=200, heartRate=70, glucose=96)
+pred <- predict(lmod_reducido, newdata = new_data, interval = "prediction", level = 0.95)
+
+# Mostrar el intervalo de predicción
+cat('Intervalo de predicción:',pred)
+
+```
+
+## 2.
+
+### A)
+
+```{r,message=FALSE, warning=FALSE,echo = FALSE}
+par(mfrow = c(2, 2))
+
+
+plot(lmod_reducido)
+
+
+```
+
+Gráfico 1: Observamos los residuos en función de los valores para verificar si el error es constante o no, es decir, estamos evaluando la homocedasticidad. La línea roja representa el valor esperado del error condicionado al valor ajustado (presión sistólica) según nuestro modelo. Esta línea se ajusta bastante cerca de cero, lo que sugiere que no hay heterocedasticidad.
+
+Gráfico 2: Observamos una recta que representa el ajuste de los residuos a una distribución normal. Los puntos que se encuentran situados en esta recta presentan un buen ajuste a una distribución normal. Observamos outliers positivos en los quantiles superiores. Esto indica que los errores del tercer quantil no siguen una distribución normal, lo cual podría afectar a la fiabilidad del modelo.
+
+Gráfico 3: Al aplicar la raíz cuadrada del error cuadrático, estamos transformando los residuos para asegurar que siempre sean valores positivos. Esta transformación nos permite visualizar de manera más clara cómo se distribuyen los errores en relación con los valores ajustados. Idealmente, esperaríamos ver una dispersión uniforme alrededor de una línea recta horizontal, lo que indicaría que el modelo está capturando adecuadamente la variabilidad en los datos. Sin embargo, notamos un punto donde hay una escasez de datos en valores sistólicos altos, lo que significa que en esa región tenemos poca representación y menos datos para evaluar el rendimiento del modelo. Esta falta de datos puede influir en la interpretación de la calidad del ajuste en esa área específica.
+
+Gráfico 4: Observamos el error de los residuos estandarizados en función de su leverage.
+Un punto de datos tiene alto leverage si tiene valores "extremos" en las variables predictoras. El gráfico nos permite visualizar el error de los valores con un mayor leverage. Podemos ver que los valores de más leverage tienen errores relativamente pequeños, esto quiere decir que existen puntos con variables predictoras con valores 'extremos' que tienen poco error. En canvio vemos que para puntos con menos leverage (con variables predictoras con valores no tan extremos) el error es mayor, lo cual indica un peor ajuste del modelo para variables de valores intermedios.  La línea roja se ajusta sobre la linea central discontinua, lo cual indica un buen ajuste en términos generales.
+
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_reducido)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_reducido)
+print(ncvTest)
+
+```
+
+Según estos dos test de homocedasticidad no podemos aceptar H0, ya que p-valor < 0.05, y por lo tanto los errores presentan heterocedasticidad y los valores de los residuos del modelo no son constantes.
+
+Este suceso incumple una de las asunciones de Gauss-Markov para las Ordinary Least Squares Regression (OLS)
+
+Esto significa que el método de mínimos cuadrados no es BLUE (Best Linear Unbiased Estimator) para nuestros datos y por lo tanto hay que usar otros métodos de ajuste para nuestra regresión como el Weighted Linear Squares, o transformar nuestros datos para que cumplan con las asumpciones de Gauss-Markov.
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_reducido))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_reducido), "pnorm", mean = mean(residuals(lmod_reducido)), sd = sd(residuals(lmod_reducido)))
+print(ks_test)
+
+```
+
+En ambos test el p-valor<0.05 y por lo tanto no podemos aceptar la H0, esto quiere decir que los residuos no siguen una distribución normal.
+
+### B)
+
+
+```{r,message=FALSE, warning=FALSE}
+
+# Cargar librerías necesarias
+library(MASS)
+
+# Estudio descriptivo de sysBP
+summary(mydat_no_NA$sysBP)
+
+# Calcular la transformación logarítmica, no hemos podido usar logtrans debido al error:
+#Error in object$y : $ operator is invalid for atomic vectors
+mydat_no_NA$log_sysBP <- log(mydat_no_NA[, 11]+1)
+log_sysBP <-mydat_no_NA$log_sysBP 
+
+# Ajustar un modelo de regresión lineal con la transformación logarítmica
+lmod_log <- lm(log_sysBP ~ BMI * male + age + totChol + heartRate + glucose, data = mydat_no_NA)
+summary(lmod_log)
+```
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+
+# Cargar librerías necesarias
+library(ggplot2)
+par(mfrow = c(2, 2))
+
+# Realizar el análisis descriptivo
+mean_sysBP <- mean(mydat_no_NA$sysBP)
+median_sysBP <- median(mydat_no_NA$sysBP)
+sd_sysBP <- sd(mydat_no_NA$sysBP)
+min_sysBP <- min(mydat_no_NA$sysBP)
+max_sysBP <- max(mydat_no_NA$sysBP)
+iqr_sysBP <- IQR(mydat_no_NA$sysBP)
+
+# Mostrar medidas estadísticas
+cat("Media de sysBP:", mean_sysBP, "\n","Mediana de sysBP:",
+    median_sysBP, "\n",
+    "Desviación estándar de sysBP:", sd_sysBP, "\n",
+    "Mínimo de sysBP:", min_sysBP, "\n",
+    "Máximo de sysBP:", max_sysBP, "\n",
+    "Rango intercuartílico de sysBP:", iqr_sysBP, "\n")
+
+
+# Crear visualizaciones
+# Histograma
+ggplot(mydat_no_NA, aes(x = sysBP)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de presión arterial sistólica", x = "sysBP", y = "Frecuencia") +
+  theme_minimal()
+
+# Diagrama de caja (Boxplot)
+ggplot(mydat_no_NA, aes(y = sysBP)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Diagrama de caja de presión arterial sistólica", y = "sysBP") +
+  theme_minimal()
+
+# Gráfico de densidad
+ggplot(mydat_no_NA, aes(x = sysBP)) +
+  geom_density(fill = "orange", color = "black", alpha = 0.7) +
+  labs(title = "Gráfico de densidad de presión arterial sistólica", x = "sysBP", y = "Densidad") +
+  theme_minimal()
+
+```
+
+En el histograma se observa como la mayor frecuencia de los valores se halla alrededor de la media (128) formando una distribución de obliquidad positiva. 
+
+En el boxplot podemos apreciar algo similar y destacan algunos outliers en el márgen superior de la distribución (es lo que hemos observado en el qqplot del apartado anterior).
+
+En el tercer gráfico observamos una estimación de la función de densidad de la variable sysBP donde podemos apreciar una oblicuidad positiva (como en el histograma) y la presencia de una cola positiva en la que encontramos los outliers que hemos detectado en el boxplot.
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+
+# Realizar el análisis descriptivo
+mean_log_sysBP <- mean(mydat_no_NA$log_sysBP)
+median_log_sysBP <- median(mydat_no_NA$log_sysBP)
+sd_log_sysBP <- sd(mydat_no_NA$log_sysBP)
+min_log_sysBP <- min(mydat_no_NA$log_sysBP)
+max_log_sysBP <- max(mydat_no_NA$log_sysBP)
+iqr_log_sysBP <- IQR(mydat_no_NA$log_sysBP)
+
+# Mostrar medidas estadísticas
+cat("Media de log_sysBP:", mean_log_sysBP, "\n","Mediana de log_sysBP:",
+    median_log_sysBP, "\n",
+    "Desviación estándar de log_sysBP:", sd_log_sysBP, "\n",
+    "Mínimo de log_sysBP:", min_log_sysBP, "\n",
+    "Máximo de log_sysBP:", max_log_sysBP, "\n",
+    "Rango intercuartílico de log_sysBP:", iqr_log_sysBP, "\n")
+
+
+# Histograma
+ggplot(mydat_no_NA, aes(x = log_sysBP)) +
+  geom_histogram(fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de presión arterial sistólica transformada", x = "log_sysBP", y = "Frecuencia") +
+  theme_minimal()
+
+# Diagrama de caja (Boxplot)
+ggplot(mydat_no_NA, aes(y = log_sysBP)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Diagrama de caja de presión arterial sistólica transformada", y = "log_sysBP") +
+  theme_minimal()
+
+# Gráfico de densidad
+ggplot(mydat_no_NA, aes(x = log_sysBP)) +
+  geom_density(fill = "orange", color = "black", alpha = 0.7) +
+  labs(title = "Gráfico de densidad de presión arterial sistólica transformada", x = "log_sysBP", y = "Densidad") +
+  theme_minimal()
+```
+
+La aplicación de la transformación logarítmica a la variable sysBP ha resultado en una distribución más centrada, lo que se traduce en una mayor similitud con una distribución normal en comparación con los datos originales antes de la transformación y una aparente reducción parcial de los outliers positivos.
+
+
+### C)
+
+
+```{r,message=FALSE, warning=FALSE}
+
+# Ajustar un modelo de regresión lineal con la transformación logarítmica
+lmod_log <- lm(log_sysBP ~ BMI * male + age + totChol + heartRate + glucose, data = mydat_no_NA)
+summary(lmod_log)
+
+par(mfrow = c(2, 2))
+
+plot(lmod_log)
+```
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_log)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_log)
+print(ncvTest)
+
+```
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_log))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_log), "pnorm", mean = mean(residuals(lmod_log)), sd = sd(residuals(lmod_log)))
+print(ks_test)
+```
+Aunque en el gráfico qqplot observamos una reducción de los outliers positivos y en el gráfico Scale-Location la linea roja presente un pendiente más plano y un mejor ajuste, los test normalidad y homocedaesticidad de los residuos de la variable transformada resultan en un p-valor<0.05 y por lo tanto rechazamos H0 en ambos test. Pese a haber realizado una trasformación log(sysBP+1) los test indican que los residuos del modelo lineal sobre la variable transformada siguen presentando heterocedasticidad y una distribución no normal. Esto implica que el ajuste del modelo por el método de mínimos cuadrados no es fiable, debido a que no se cumplen todas las asuncioes de Gauss-Markov.
+
+### D)
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+library(broom)
+library(dplyr)
+
+model_data <- augment(lmod_log) #.hat corresponde al leverage
+#model_data
+leverage_sorted <- model_data %>% arrange(desc(.hat)) #ordenamos valores por highest leverage
+
+high_lev <- filter(model_data,.hat>3*mean(model_data$.hat)) # consideramos valores de alta influencia                                                             #aquellos que triplican el mean leverage
+cat('Valor leverage de los Top 3 puntos con mayor leverage:',leverage_sorted$.hat[1:3])
+cat('\nLeverage medio:',mean(model_data$.hat))
+```
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Identificar valores atípicos
+outliers <- which(abs(rstandard(lmod_log)) > 2)
+
+# Identificar puntos de alto leverage
+high_leverage <- which(hatvalues(lmod_log) > 2 * mean(hatvalues(lmod_log)))
+
+# Identificar puntos influyentes
+influential_points <- which(cooks.distance(lmod_log) > 4 / nrow(mydat_no_NA))
+
+outliers_influential <- intersect(outliers, influential_points)
+
+# Crear gráfico resumen
+plot(lmod_log, which = 5)  # Gráfico de Influencia vs. Residuos Estudentizados y Gráfico de Residuos Estudentizados
+abline(h = c(2, -2), col = "red", lty = 2)  # Líneas para identificar valores atípicos
+points(model_data$.hat[outliers], rstandard(lmod_log)[outliers], col = "red", pch = 19)  # Resaltar valores atípicos
+points(model_data$.hat[high_leverage], rstandard(lmod_log)[high_leverage], col = "blue", pch = 19)  # Resaltar puntos de alto leverage
+points(model_data$.hat[influential_points], rstandard(lmod_log)[influential_points], col = "green", pch = 19)  # Resaltar puntos influyentes
+points(model_data$.hat[outliers_influential], rstandard(lmod_log)[outliers_influential], col = "purple", pch = 19)
+legend("topright", legend = c("Atípicos", "Alto leverage", "Influyentes", "Atípicos & Influential Points"), col = c("red", "blue", "green", "purple"), pch = 19)
+
+```
+
+
+Este gráfico nos indica de forma visual cual es el leverage en relación al error estándar de los siguientes puntos:
+- Atípicos
+- De alto leverage
+- Influyentes (segun Cook's distance) y aquellos
+- Atípicos e Influyentes
+
+Los valores atípicos (rojo) son aquellos que presentan un valor inusual que no sigue el patrón de la recta de regresión.
+Los valores influyentes (verde) son aquellos que tienen un mayor peso en la determinación de los valores de los parámetros para el ajuste óptimo del modelo.
+Los valores atípicos e influyentes (lila) generalmente presentan error mayor a los puntos influyentes que no son atípicos. En el gráfico que observa a simple vista que aproximadamente la mitad de los valores influyentes son también valores atípicos. Esto indica que valores atípicos y con un error significativo han tenido una gran relevancia en el ajuste de los parámetros del modelo lineal.
+
+### E)
+
+
+```{r}
+# Obtener las distancias de Cook
+cook_distances <- cooks.distance(lmod_log)
+
+# Ordenar las distancias de Cook de mayor a menor
+sorted_cook <- sort(cook_distances, decreasing = TRUE)
+
+# Obtener los índices de las tres observaciones más influyentes
+top_influential_indices <- as.integer(names(sorted_cook)[1:3])
+
+# Imprimir los índices de las observaciones más influyentes
+print(top_influential_indices)
+
+
+```
+
+
+```{r}
+
+outliers <- which(abs(rstandard(lmod_log)) > 2)
+
+# Verificar si los puntos más influyentes son también atípicos
+influential_outliers <- top_influential_indices %in% outliers
+
+# Imprimir el resultado
+print(influential_outliers)
+
+```
+
+Los top 3 valores más influyentes con los índices 2894 2181 1998 no se encuentran en la lista de indices de outliers.
+
+```{r}
+# Eliminar las observaciones más influyentes
+new_data <- mydat_no_NA[-as.numeric(top_influential_indices), ]
+
+# Ajustar un nuevo modelo de regresión
+lmod_new <- lm(sysBP ~ BMI * male + age + totChol + heartRate + glucose, data = new_data)
+summary(lmod_new)
+
+
+par(mfrow = c(2, 2))
+
+plot(lmod_log)
+```
+
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_new)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_new)
+print(ncvTest)
+```
+
+
+```{r,message=FALSE, warning=FALSE,echo=FALSE}
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_new))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_new), "pnorm", mean = mean(residuals(lmod_new)), sd = sd(residuals(lmod_new)))
+print(ks_test)
+
+```
+
+La eliminación de los 3 puntos más influyentes, al no ser outlieres, no mejoran el ajuste del modelo en los gráficos de qqplot y Scale-Location respecto al modelo con los 3 puntos más influyentes, es por eso que eltest de normalidad de los residuos de la variable transformada sin outliers resultan en un p-valor<0.05 y por lo tanto rechazamos H0 en ambos test. Esto implica que los residuos de la variable transformada siguen presentando heterocedasticidad y una distribución no normal.
+
+## 3.
+
+### A)
+
+```{r}
+# Obtener la matriz de diseño del modelo
+design_matrix <- model.matrix(lmod_new)
+
+# Calcular el rango de la matriz de diseño
+rank_design <- qr(design_matrix)$rank
+cat('Rango: ', rank_design)
+# Calcular numero de parametros
+num_col <- ncol(design_matrix)
+cat('\nNumero parametros: ', num_col)
+
+```
+
+El rango de la matriz de diseño coincide con el número de parámetros por lo tanto para hallar la solución deberemos resolver este Sistema Compatible Determinado de una única solución. Como la solución es única no tendremos problemas para estimar las combinaciones lineales de los parámetros.
+
+### B)
+
+Cuando el número de parámetros en el modelo es igual al rango de la matriz de diseño, significa que el sistema de ecuaciones normales tiene una solución única. Esto indica que cada parámetro del modelo puede ser estimado de manera única y precisa, y que el modelo es completamente identificable. En este caso, no hay colinealidad perfecta entre las variables predictoras, lo que garantiza que podamos encontrar una solución única.
+
+Por otro lado, cuando el número de parámetros es diferente al rango de la matriz de diseño, significa que el sistema de ecuaciones normales tiene múltiples soluciones o ninguna solución. Esto puede ocurrir cuando hay colinealidad perfecta entre las variables predictoras. En tales casos, el modelo es "sobreparametrizado" y no se puede obtener una solución única para los parámetros del modelo.
+
+Cuando hay múltiples soluciones, significa que hay infinitas combinaciones lineales de los parámetros correctas. Esto puede llevar a problemas de identificabilidad y a la falta de unicidad en la estimación de los parámetros. En tales casos, se necesitan técnicas adicionales, como: 
+
+- El cálculo de una de las posibles soluciones mediante la matriz G inversa
+- La reducción a un modelo de rango máximo (mediante la eliminación de columnas linealmente dependientes o la imposición de restricciones en parámetros)
+
+
+### C)
+
+```{r}
+# Extraer los coeficientes del modelo ajustado en el ejercicio 2(e)
+coeficientes_ejercicio_2e <- coef(lmod_new)
+
+# Calcular los coeficientes usando las ecuaciones normales
+coeficientes_ecuaciones_normales <- solve(t(design_matrix) %*% design_matrix, t(design_matrix) %*% new_data$log_sysBP)
+
+
+# Comparar los coeficientes
+print(coeficientes_ejercicio_2e)
+print(coeficientes_ecuaciones_normales)
+
+
+```
+
+
+El método de regresión lineal, utilizado para ajustar la recta de regresión mediante mínimos cuadrados, busca minimizar la suma de los cuadrados de las diferencias entre los valores observados y los predichos por el modelo. Este enfoque está diseñado para encontrar la mejor línea de ajuste que represente la relación entre las variables predictoras y la variable de respuesta.
+
+Por otro lado, resolver el sistema de ecuaciones lineales de forma directa busca encontrar la combinación única de valores para las variables que satisfaga todas las ecuaciones simultáneamente. En el contexto de un modelo lineal, esto implica encontrar el punto donde todas las ecuaciones (que representan las relaciones entre las variables) se cruzan en el espacio. Sin embargo, este método no está optimizado específicamente para ajustar una línea de regresión que minimice el error del modelo para hacer predicciones precisas.
+
+Debido a estas diferencias en la metodología y los objetivos de cada enfoque, es normal observar discrepancias significativas entre los coeficientes obtenidos mediante regresión lineal y los calculados mediante la resolución directa del sistema de ecuaciones lineales. Cada método está diseñado para cumplir con sus propios criterios de optimización, lo que puede resultar en coeficientes bastante diferentes.
+
+### D)
+
+```{r}
+y <- new_data$log_sysBP
+X <- design_matrix
+MSE <- mean((y-X%*%coeficientes_ecuaciones_normales)^2)
+
+# Calcular el intervalo de confianza del 95% para la varianza del error
+alpha <- 0.05
+n <- length(lmod_new$residuals)
+lower_bound <- (n - 1) * MSE / qchisq(1 - alpha / 2, df = n - 1)
+upper_bound <- (n - 1) * MSE / qchisq(alpha / 2, df = n - 1)
+
+# Mostrar resultados
+cat("Varianza del error (MSE):", MSE, "\n")
+cat("Intervalo de confianza del 95% para la varianza del error:", lower_bound, "-", upper_bound, "\n")
+```
+El error cuadrático medio (MSE) calculado es de aproximadamente 0.0179, lo que indica la dispersión promedio de los residuos respecto a la línea de regresión. El intervalo de confianza del 95% para la varianza del error está entre aproximadamente 0.0171 y 0.0187, lo que significa que tenemos un alto grado de certeza de que la verdadera varianza del error se encuentra dentro de este rango. Esto proporciona una medida de la precisión de nuestro modelo de regresión lineal y sugiere que los residuos están razonablemente bien distribuidos alrededor de la línea de regresión.
+
+## Apéndices
+
+### Código 
+
+Cargar los datos y eliminar NA values
+
+```{r,message=FALSE, warning=FALSE,eval = FALSE}
+data <- read.csv('framingham.csv')
+
+mydat_no_NA <- na.omit(data) #eliminamos missing values
+
+```
+
+1.B
+
+```{r,message=FALSE, warning=FALSE,eval = FALSE}
+# Dibujar el gráfico de dispersión
+plot(mydat_no_NA$BMI, mydat_no_NA$sysBP, col = ifelse(mydat_no_NA$male == 1, "blue", "red"), 
+     xlab = "BMI", ylab = "sysBP", main = "Gráfico de dispersión con rectas de regresión en hombes y mujeres")
+
+# Agregar las rectas de regresión para hombres y mujeres
+abline(lm(sysBP ~ BMI * male, data = mydat_no_NA[mydat_no_NA$male == 1,]), col = "blue")
+abline(lm(sysBP ~ BMI * male, data = mydat_no_NA[mydat_no_NA$male == 0,]), col = "red")
+
+# Agregar leyenda
+legend("topright", legend = c("Hombres", "Mujeres"), col = c("blue", "red"), pch = 1)
+
+
+```
+
+1.C
+
+```{r,eval=FALSE}
+# Calcular los intervalos de confianza al 99% para los coeficientes del modelo
+confianza_coeficientes <- confint(lmod_inicial, level = 0.99)
+print(confianza_coeficientes)
+
+# Calcular una estimación de la varianza del error en el mismo modelo
+varianza_error <- sigma(lmod_inicial)
+cat('Varianza del error: ', varianza_error)
+```
+
+1.E
+
+```{r,eval=FALSE}
+# Comparar los dos modelos utilizando el test de razón de verosimilitudes
+anova_test <- anova(lmod_reducido, lmod_ampliado, test = "Chisq")
+
+# Mostrar los resultados del test
+print(anova_test)
+
+``` 
+
+1.F
+
+```{r,message=FALSE, warning=FALSE,eval = FALSE}
+print('Summary BMI')
+summary(mydat_no_NA$BMI)
+print('Summary Age')
+summary(mydat_no_NA$age)
+print('Summary totChol')
+summary(mydat_no_NA$totChol)
+print('Summary heartRate')
+summary(mydat_no_NA$heartRate)
+print('Summary glucose')
+summary(mydat_no_NA$glucose)
+
+
+# Calcular la matriz de correlación
+cor_matrix <- cov2cor(vcov(lmod_reducido))
+
+# Calcular el leverage
+leverage <- hatvalues(lmod_reducido)
+
+# Encontrar el índice del valor de leverage máximo
+max_leverage_index <- which.max(leverage)
+
+# Calcular el elipsoide de predicción
+elipsoide <- qnorm(0.975) * sqrt(leverage[max_leverage_index] * (1 + rowSums(cor_matrix^2)))
+
+# Graficar el elipsoide
+plot(NA, xlim = c(20, 35), ylim = c(80, 220), xlab = "BMI", ylab = "sysBP", main = "Elipsoide de Predicción con leverage máximo")
+points(mydat_no_NA$BMI, mydat_no_NA$sysBP)
+points(29, predict(lmod_reducido, newdata = data.frame(BMI=29, male=0, age=64, totChol=200, heartRate=70, glucose=96)), col = "red", pch = 19)
+contour(outer(mydat_no_NA$BMI, elipsoide, "-"), add = TRUE) # Comprobamos que la variable se halla en el elipsoide de leverage maximo
+legend("topleft", legend = c("Datos", "Nuevo individuo"), col = c("black", "red"), pch = c(1, 19))
+
+# Calcular el intervalo de predicción al 95%
+new_data <- data.frame(BMI=29, male=0, age=64, totChol=200, heartRate=70, glucose=96)
+pred <- predict(lmod_reducido, newdata = new_data, interval = "prediction", level = 0.95)
+
+# Mostrar el intervalo de predicción
+cat('Intervalo de predicción:.'pred)
+
+```
+
+
+2.A
+
+```{r,message=FALSE, warning=FALSE,eval= FALSE}
+par(mfrow = c(2, 2))
+
+
+plot(lmod_reducido)
+
+
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_reducido)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_reducido)
+print(ncvTest)
+
+
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_reducido))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_reducido), "pnorm", mean = mean(residuals(lmod_reducido)), sd = sd(residuals(lmod_reducido)))
+print(ks_test)
+```
+
+2.B
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+
+# Cargar librerías necesarias
+library(ggplot2)
+par(mfrow = c(2, 2))
+
+# Realizar el análisis descriptivo
+mean_sysBP <- mean(mydat_no_NA$sysBP)
+median_sysBP <- median(mydat_no_NA$sysBP)
+sd_sysBP <- sd(mydat_no_NA$sysBP)
+min_sysBP <- min(mydat_no_NA$sysBP)
+max_sysBP <- max(mydat_no_NA$sysBP)
+iqr_sysBP <- IQR(mydat_no_NA$sysBP)
+
+# Mostrar medidas estadísticas
+cat("Media de sysBP:", mean_sysBP, "\n","Mediana de sysBP:",
+    median_log_sysBP, "\n",
+    "Desviación estándar de sysBP:", sd_sysBP, "\n",
+    "Mínimo de sysBP:", min_sysBP, "\n",
+    "Máximo de sysBP:", max_sysBP, "\n",
+    "Rango intercuartílico de sysBP:", iqr_sysBP, "\n")
+
+
+# Crear visualizaciones
+# Histograma
+ggplot(mydat_no_NA, aes(x = sysBP)) +
+  geom_histogram(binwidth = 5, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de presión arterial sistólica", x = "sysBP", y = "Frecuencia") +
+  theme_minimal()
+
+# Diagrama de caja (Boxplot)
+ggplot(mydat_no_NA, aes(y = sysBP)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Diagrama de caja de presión arterial sistólica", y = "sysBP") +
+  theme_minimal()
+
+# Gráfico de densidad
+ggplot(mydat_no_NA, aes(x = sysBP)) +
+  geom_density(fill = "orange", color = "black", alpha = 0.7) +
+  labs(title = "Gráfico de densidad de presión arterial sistólica", x = "sysBP", y = "Densidad") +
+  theme_minimal()
+
+
+# Analisis variable transformada
+mean_log_sysBP <- mean(mydat_no_NA$log_sysBP)
+median_log_sysBP <- median(mydat_no_NA$log_sysBP)
+sd_log_sysBP <- sd(mydat_no_NA$log_sysBP)
+min_log_sysBP <- min(mydat_no_NA$log_sysBP)
+max_log_sysBP <- max(mydat_no_NA$log_sysBP)
+iqr_log_sysBP <- IQR(mydat_no_NA$log_sysBP)
+
+# Mostrar medidas estadísticas
+cat("Media de log_sysBP:", mean_log_sysBP, "\n","Mediana de log_sysBP:",
+    median_log_sysBP, "\n",
+    "Desviación estándar de log_sysBP:", sd_log_sysBP, "\n",
+    "Mínimo de log_sysBP:", min_log_sysBP, "\n",
+    "Máximo de log_sysBP:", max_log_sysBP, "\n",
+    "Rango intercuartílico de log_sysBP:", iqr_log_sysBP, "\n")
+
+
+# Histograma
+ggplot(mydat_no_NA, aes(x = log_sysBP)) +
+  geom_histogram(fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histograma de presión arterial sistólica transformada", x = "log_sysBP", y = "Frecuencia") +
+  theme_minimal()
+
+# Diagrama de caja (Boxplot)
+ggplot(mydat_no_NA, aes(y = log_sysBP)) +
+  geom_boxplot(fill = "lightgreen", color = "black") +
+  labs(title = "Diagrama de caja de presión arterial sistólica transformada", y = "log_sysBP") +
+  theme_minimal()
+
+# Gráfico de densidad
+ggplot(mydat_no_NA, aes(x = log_sysBP)) +
+  geom_density(fill = "orange", color = "black", alpha = 0.7) +
+  labs(title = "Gráfico de densidad de presión arterial sistólica transformada", x = "log_sysBP", y = "Densidad") +
+  theme_minimal()
+```
+
+2.C
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_log)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_log)
+print(ncvTest)
+
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_log))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_log), "pnorm", mean = mean(residuals(lmod_log)), sd = sd(residuals(lmod_log)))
+print(ks_test)
+
+```
+
+2.D
+
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+library(broom)
+library(dplyr)
+
+model_data <- augment(lmod_log) #.hat corresponde al leverage
+#model_data
+leverage_sorted <- model_data %>% arrange(desc(.hat)) #ordenamos valores por highest leverage
+
+high_lev <- filter(model_data,.hat>3*mean(model_data$.hat)) # consideramos valores de alta influencia                                                             #aquellos que triplican el mean leverage
+cat('Valor leverage de los Top 3 puntos con mayor leverage:',leverage_sorted$.hat[1:3])
+cat('\nLeverage medio:',mean(model_data$.hat))
+
+
+# Identificar valores atípicos
+outliers <- which(abs(rstandard(lmod_log)) > 2)
+
+# Identificar puntos de alto leverage
+high_leverage <- which(hatvalues(lmod_log) > 2 * mean(hatvalues(lmod_log)))
+
+# Identificar puntos influyentes
+influential_points <- which(cooks.distance(lmod_log) > 4 / nrow(mydat_no_NA))
+
+outliers_influential <- intersect(outliers, influential_points)
+
+# Crear gráfico resumen
+plot(lmod_log, which = 5)  # Gráfico de Influencia vs. Residuos Estudentizados y Gráfico de Residuos Estudentizados
+abline(h = c(2, -2), col = "red", lty = 2)  # Líneas para identificar valores atípicos
+points(model_data$.hat[outliers], rstandard(lmod_log)[outliers], col = "red", pch = 19)  # Resaltar valores atípicos
+points(model_data$.hat[high_leverage], rstandard(lmod_log)[high_leverage], col = "blue", pch = 19)  # Resaltar puntos de alto leverage
+points(model_data$.hat[influential_points], rstandard(lmod_log)[influential_points], col = "green", pch = 19)  # Resaltar puntos influyentes
+points(model_data$.hat[outliers_influential], rstandard(lmod_log)[outliers_influential], col = "purple", pch = 19)
+legend("topright", legend = c("Atípicos", "Alto leverage", "Influyentes", "Atípicos & Influential Points"), col = c("red", "blue", "green", "purple"), pch = 19)
+```
+
+2.E
+
+```{r,message=FALSE, warning=FALSE,eval=FALSE}
+# Test de homocedasticidad
+library(lmtest)
+library(car)
+
+# Breusch-Pagan Test
+bp_test <- bptest(lmod_new)
+print(bp_test)
+# Score test for nonconstant error variance
+ncvTest <- ncvTest(lmod_new)
+print(ncvTest)
+
+# Test de normalidad de los errores
+# Shapiro-Wilk Test
+shapiro_test <- shapiro.test(residuals(lmod_new))
+print(shapiro_test)
+# Kolmogorov-Smirnov Test
+ks_test <- ks.test(residuals(lmod_new), "pnorm", mean = mean(residuals(lmod_new)), sd = sd(residuals(lmod_new)))
+print(ks_test)
+
+```

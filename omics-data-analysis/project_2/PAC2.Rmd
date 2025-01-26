@@ -1,0 +1,1270 @@
+---
+title: "PAC2 Análisis Datos Omicos"
+author: "Raúl Pérez Prats"
+date: "2024-05-23"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+# Tabla de contenidos
+
+## 1. Introducción 
+
+## 2. Objetivos
+
+## 3. Métodos
+
+## 4. Resultados
+
+## 5. Apéndices
+
+
+## Introducción
+
+La leucemia mieloblástica es un tipo de cáncer que afecta a las células mieloides en la médula ósea, las cuales son responsables de la producción de glóbulos blancos, glóbulos rojos y plaquetas. Esta enfermedad se caracteriza por la proliferación incontrolada de células inmaduras llamadas blastos mieloides, que interfieren con la producción normal de células sanguíneas y se acumulan en la médula ósea y en la sangre periférica.
+
+La leucemia mieloblástica se divide principalmente en leucemia mieloide aguda (LMA) y leucemia mieloide crónica (LMC) en función de la rapidez con la que la enfermedad progresa y las características clínicas y genéticas específicas.
+
+La leucemia mieloide aguda (LMA) es una forma agresiva de leucemia que progresa rápidamente. Se caracteriza por un aumento rápido y descontrolado de blastos mieloides inmaduros en la médula ósea y en la sangre.
+
+La leucemia mieloide crónica (LMC) es una forma más lenta y progresiva de leucemia que se caracteriza por el aumento de glóbulos blancos maduros y parcialmente maduros en la médula ósea y en la sangre.
+
+## Objetivos
+
+### Objetivos Principales
+En esta PEC se caracterizará la leucemia mieloblastica a través de la expresión génica mediante las comparaciones:
+
+- Leucemia mieloide aguda (AML) frente a leucemia mieloide crónica (CML)
+- Leucemia mieloide aguda (AML) frente a “No leucemia” (NoL)
+- Leucemia mieloide crónica (CML) frente a “No leucemia” (NoL)
+
+### Objetivos secundários
+
+- Preparar los datos
+- Hacer un análisis exploratorio y control de calidad
+- Construir las matrizes de diseño y de contrastes
+- Obtener las listas de genes diferencialmente expresados para cada comparación
+- Anotar los genes
+- Analizar la significación biológica de las 3 comparaciones principales
+
+
+## Métodos
+
+Para realizar el análisis de expresión génica definido en los objetivos he descargado mediante Bioconductor el paquete "leukemiasEset". A partir de este dataset he subseteado las muestras de los tipos AML, CML y NoL eliminando aleatoriamente dos muestras de cada grupo, estableciendo un set.seed = 1651919 para permitir la reproducibilidad.
+
+Posteriormente he realizado un análisis exploratorio y de control de calidad mediante histogramas y boxplots para ver la distribución de la expresión génica en los grupos AML, CML y NoL, y he generado un report de calidad mediante el paquete arrayqualitymetrics. También he realizado un análisis con MA plots de los 3 grupos para observar la presencia de sesgos o ruído en los datos de los microarrays. Tras realizar las evaluaciones pertinentes he normalizado las muestras mediante una normalización global Log2.
+
+He proseguido con la construcción de lasmatrices de diseño y de contrastes con el paquete 'limma' para poder obtener las listas de los genes diferenciamente expresados en las 3 comparaciones establecidas en los objetivos. También he realizado volcanoplots y venn diagrams para la visualización y la mejor comprensión de las listas de genes diferencialmente expresados.
+
+A partir de estas listas he anotado los genes con el identificador Symbol.
+
+Finalmente utilizando el paquete 'clusterProfiler' he realizado un Gene Set Enrichment Analysis (GSEA) y un KEGG pathway GSEA para visualizar los grupos de genes y las rutas metabólicas diferenciamente expresadas en los 3 grupos. Con esta información he descrito un análisis de la significación biológica.
+
+## Resultados y Discusión
+
+### Preparación de los datos
+
+```{r,message=FALSE, warning=FALSE}
+
+library(leukemiasEset)
+data("leukemiasEset") #Cargamos el dataset
+
+# Metadata de las muestras 
+sample_metadata <- pData(leukemiasEset)
+#sample_metadata
+# seleccionamos los tipos 'AML', 'CML' y 'NoL'
+selected_samples <- leukemiasEset[, sample_metadata[['LeukemiaType']] %in% c("AML", "CML", "NoL")]
+
+#head(exprs(selected_samples))
+#pData(selected_samples)
+```
+
+Elimino aleatoriamente dos mustras de cada clase de leucemia:
+
+```{r,message=FALSE, warning=FALSE}
+
+
+set.seed(1651919) #fecha de nacimiento del Dr. Margalef
+
+
+# Identificamos la columna del tipo de leucemia
+leukemia_column <- "LeukemiaType"  
+
+# Creamos una lista para almacenar índices de muestras a conservar
+indices_to_keep <- integer(0)
+
+# Creamos una lista para almacenar los ID de las muestras que se eliminan
+removed_sample_ids <- list()
+# Procesamos cada tipo de leucemia
+leukemia_types <- c("AML", "CML", "NoL")
+for (type in leukemia_types) {
+    # Indices de las muestras del tipo seleccionado
+    type_indices <- which(selected_samples[[leukemia_column]] == type)
+    
+    # Sampleamos 2 indices a eliminar
+    indices_to_remove <- sample(type_indices, 2)
+    
+    # Guardamos los indices a eliminar
+    removed_sample_ids[[type]] <- rownames(pData(selected_samples))[indices_to_remove]
+}
+# vectorizamos las samples a eliminar
+samples_to_remove <- unname(unlist(removed_sample_ids))
+
+
+#Eliminamos las muestras seleccionadas aleatoriamente
+selected_samples_r <- selected_samples[, !colnames(selected_samples) %in% samples_to_remove]
+
+#Printamos expressionset
+#exprs(selected_samples_r)
+
+# Printamos head metadata
+head(pData(selected_samples_r))
+
+```
+
+Este es el metadata del dataset final con el que trabajaré
+
+### Análisis exploratorio y control de calidad
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+
+library(Biobase)
+library(ggplot2)
+
+# Subseteamos daots AML, CML, and NoL
+aml_samples <- pData(selected_samples_r)$LeukemiaType == "AML"
+cml_samples <- pData(selected_samples_r)$LeukemiaType == "CML"
+nol_samples <- pData(selected_samples_r)$LeukemiaType == "NoL"
+
+# Extraemos niveles de expresion
+aml_expr <- exprs(selected_samples_r)[, aml_samples]
+cml_expr <- exprs(selected_samples_r)[, cml_samples]
+nol_expr <- exprs(selected_samples_r)[, nol_samples]
+
+# Los combinamos en un unico expresion dataset
+expr_data <- data.frame(
+  Expression = c(aml_expr, cml_expr, nol_expr),
+  LeukemiaType = rep(c("AML", "CML", "NoL"), c(ncol(aml_expr), ncol(cml_expr), ncol(nol_expr)))
+)
+
+# Creamos histogramas
+histogram_expr <- ggplot(expr_data, aes(x = Expression)) +
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(title = "Histogram of Expression Levels") +
+  facet_wrap(~ LeukemiaType, scales = "free")
+
+# printamos
+print(histogram_expr)
+
+```
+
+Los histogramas nos permiten observar los niveles de expresión más frecuentes en cada grupo de Leucemia. A simple vista no se pueden apreciar grandes diferencias entre los tres grupos, por lo tanto deberemos hacer un análisis más profundo para determinar si existen diferencias en los niveles de expresión de los genes de los diferentes grupos y si éstas son significativas.
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+
+
+
+# Definimos colores
+colors <- c("AML" = "blue", "CML" = "red", "NoL" = "green")
+
+# Creamos boxplot
+boxplot <- ggplot(expr_data, aes(x = LeukemiaType, y = Expression, fill = LeukemiaType)) +
+  geom_boxplot() +
+  scale_fill_manual(values = colors) +  # Assign custom colors
+  labs(title = "Expression Levels of AML, CML, and NoL") +
+  xlab("Leukemia Type") +
+  ylab("Expression Level")
+
+print(boxplot)
+
+```
+
+Los boxplots nos muestran más claramente que estos 3 grupos son muy similares a simple vista, debido a que tienen un valor promedio de expresión de los genes muy parecido, y además presentan una cola de outliers en la parte superior de la distribución.
+
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+
+
+
+selected_samples_log <- selected_samples_r # copiamos la variable para no modificarla de forma definitiva
+
+expr_matrix <- exprs(selected_samples_r)
+
+#aplciamos transformacion
+log2_expr_matrix <- log2(expr_matrix)  
+
+# actualizamos datos con la transformacion
+exprs(selected_samples_log) <- log2_expr_matrix
+
+# Creamos subsets
+aml_samples_log <- pData(selected_samples_log)$LeukemiaType == "AML"
+cml_samples_log <- pData(selected_samples_log)$LeukemiaType == "CML"
+nol_samples_log <- pData(selected_samples_log)$LeukemiaType == "NoL"
+
+# Extraemos niveles de expresion por cada categoria
+aml_expr_log <- exprs(selected_samples_log)[, aml_samples_log]
+cml_expr_log <- exprs(selected_samples_log)[, cml_samples_log]
+nol_expr_log <- exprs(selected_samples_log)[, nol_samples_log]
+
+# Combinamos los niveles de expresion en un unico dataframe
+expr_data_log <- data.frame(
+  Expression = c(aml_expr_log, cml_expr_log, nol_expr_log),
+  LeukemiaType = rep(c("AML", "CML", "NoL"), c(ncol(aml_expr_log), ncol(cml_expr_log), ncol(nol_expr_log)))
+)
+
+# colores
+colors <- c("AML" = "blue", "CML" = "red", "NoL" = "green")
+
+# Creamos boxplot
+
+boxplot <- ggplot(expr_data_log, aes(x = LeukemiaType, y = Expression, fill = LeukemiaType)) +
+  geom_boxplot() +
+  scale_fill_manual(values = colors) +  # Assign custom colors
+  labs(title = "Log2 Transformed Expression Levels of AML, CML, and NoL") +
+  xlab("Leukemia Type") +
+  ylab("Log2 Expression Level")
+
+print(boxplot)
+```
+
+Intentamos corregir la asimetría mencionada anteriormente realizando una transformación logarítmica del ExpressionSet. La transformación ha resultado en una distribución de los niveles de expresión más simétrica en los 3 grupos.
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+
+#PCA
+
+
+# 1. Extraemos matriz de expresion
+expr_matrix <- exprs(selected_samples_r)
+
+# 2. Transponemos
+expr_matrix <- t(expr_matrix)
+
+# 3. Escalamos
+scaled_expr_matrix <- scale(expr_matrix)
+
+# 4. Calculamos PCA
+pca_result <- prcomp(scaled_expr_matrix)
+
+# Extraemos el sampletype
+sample_types <- pData(selected_samples_r)$LeukemiaType
+
+#Colores
+sample_colors <- ifelse(sample_types == "AML", "red",
+                        ifelse(sample_types == "CML", "blue", "green"))
+
+# Printamos PCA
+plot(pca_result$x[, 1], pca_result$x[, 2], 
+     col = sample_colors,
+     xlab = paste0("PC1 (", round(100 * summary(pca_result)$importance[2, 1]), "% Variance)"), 
+     ylab = paste0("PC2 (", round(100 * summary(pca_result)$importance[2, 2]), "% Variance)"), 
+     main = "PCA Plot")
+
+# Leyenda
+legend("topright", legend = unique(sample_types), col = unique(sample_colors), pch = 1)
+
+
+
+```
+
+El PCA, pese a expresar un 41% de la variancia total, muestra como se distribuyen y separan nuestras muestras de los 3 grupos. Se observa como cada grupo permanece parcialmente agrupado y es diferenciable de los demás grupos, ya que encontramos a las muestras de AML en la parte superior del gráfico, CML en la parte inferior y NoL en la parte central, muy cerca de los puntos de AML y CML. El PCA muestra como los grupos AML y CML quedan muy claramente diferenciados, ya que estan en posiciones opuestas respecto al eje vertical, mientras que NoL queda entre los dos grupos sin estar tan claramente diferenciado.
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+# Funcion para crear MA plot
+create_ma_plot <- function(group1_data, group2_data, group1_name, group2_name) {
+  # Calculamos log fold change (M) y average expression (A)
+  log_fold_change <- rowMeans(group1_data) - rowMeans(group2_data)
+  average_expression <- rowMeans(cbind(group1_data, group2_data))
+  
+  # Creamos dataframe para el grafico
+  ma_data <- data.frame(M = log_fold_change, A = average_expression)
+  
+  # Generamos MA plot
+  p <- ggplot(ma_data, aes(x = A, y = M)) +
+    geom_point(alpha = 0.5) +
+    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+    labs(title = paste("MA Plot:", group1_name, "vs", group2_name),
+         x = "Average Expression (A)",
+         y = "Log Fold Change (M)") +
+    theme_minimal()
+  
+  return(p)
+}
+
+expr_data <- exprs(selected_samples_r)
+
+sample_info <- pData(selected_samples_r)
+
+aml_data <- expr_data[, sample_info$LeukemiaType == "AML"]
+cml_data <- expr_data[, sample_info$LeukemiaType == "CML"]
+nol_data <- expr_data[, sample_info$LeukemiaType == "NoL"]
+
+# Creamos MA plots
+ma_plot_aml_vs_cml <- create_ma_plot(aml_data, cml_data, "AML", "CML")
+ma_plot_aml_vs_nol <- create_ma_plot(aml_data, nol_data, "AML", "NoL")
+ma_plot_cml_vs_nol <- create_ma_plot(cml_data, nol_data, "CML", "NoL")
+
+# Arrange the plots in a single window
+grid.arrange(ma_plot_aml_vs_cml, ma_plot_aml_vs_nol, ma_plot_cml_vs_nol, nrow = 1)
+
+################################################################################################
+
+
+# Repetimos el proceso para las muestras normalizadas
+expr_data <- exprs(selected_samples_log)
+
+sample_info <- pData(selected_samples_log)
+
+aml_data <- expr_data[, sample_info$LeukemiaType == "AML"]
+cml_data <- expr_data[, sample_info$LeukemiaType == "CML"]
+nol_data <- expr_data[, sample_info$LeukemiaType == "NoL"]
+
+ma_plot_aml_vs_cml_log <- create_ma_plot(aml_data, cml_data, "AML", "CML")
+ma_plot_aml_vs_nol_log <- create_ma_plot(aml_data, nol_data, "AML", "NoL")
+ma_plot_cml_vs_nol_log <- create_ma_plot(cml_data, nol_data, "CML", "NoL")
+
+grid.arrange(ma_plot_aml_vs_cml_log, ma_plot_aml_vs_cml_log, ma_plot_aml_vs_cml_log, nrow = 1)
+
+```
+
+En la primera imagen están representados los MA plots de las 3 posibles comparaciones. Se puede apreciar como la distribución de LogFoldChange respecto al promedio de expresión es bastante asimétrica en los 3 casos, principalmente debido a los outliers que presentan por debajo de la linea horizontal de LogFoldChange = 0. 
+
+Cuando repetimos el análisis con los datos tratados mediante una normalización global Log2 vemos que los MA plots se vuelven más simétricos debido a la reducción de outliers, tal y como habíamos visto también en el boxplot.
+
+Usaremos los datos tratados con esta transformación para el análisis debido a que, al hacer nuestros datos más simétricos en el boxplot y en el MA plot, corrige parte del ruido de nuestra muestra y parte de los posibles sesgos técnicos.
+
+### Construcción de las matrices de diseño y de contrastes
+
+Matriz de diseño
+
+```{r,message=FALSE, warning=FALSE}
+library(limma)
+
+sample_info$LeukemiaType <- factor(sample_info$LeukemiaType, levels = c("AML", "CML", "NoL"))
+design_matrix <- model.matrix(~ 0 + LeukemiaType, data = sample_info)
+colnames(design_matrix) <- levels(sample_info$LeukemiaType)
+
+print('MATRIZ DE DISEÑO')
+print(design_matrix)
+
+contrast_matrix <- makeContrasts(
+  AMLvsCML = AML - CML,
+  AMLvsNoL = AML - NoL,
+  CMLvsNoL = CML - NoL,
+  levels = design_matrix
+)
+print(contrast_matrix)
+
+```
+
+### Obtención de las listas de genes diferencialmente expresados para cada comparación
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+# Ajustar el modelo lineal
+library(annotate)
+
+fit <- lmFit(expr_data, design_matrix)
+
+# Aplicar los contrastes
+fit2 <- contrasts.fit(fit, contrast_matrix)
+
+# Realizar el análisis bayesiano
+fit2 <- eBayes(fit2)
+
+# Ver los resultados
+results_aml_vs_cml <- topTable(fit2, coef = "AMLvsCML")
+results_aml_vs_nol <- topTable(fit2, coef = "AMLvsNoL")
+results_cml_vs_nol <- topTable(fit2, coef = "CMLvsNoL")
+
+
+# Mostrar resultados
+#print(results_aml_vs_cml)
+#print(results_aml_vs_nol)
+#print(results_cml_vs_nol)
+
+topTabAMLvsCML <- topTable (fit2, number=nrow(fit2), coef="AMLvsCML", adjust="fdr")
+topTabAMLvsNoL <- topTable (fit2, number=nrow(fit2), coef="AMLvsNoL", adjust="fdr")
+topTabCMLvsNoL  <- topTable (fit2, number=nrow(fit2) , coef="CMLvsNoL", adjust="fdr")
+
+#topTabAMLvsCML$genesSymbol <- getSYMBOL(topTabAMLvsCML[, 1],"hgu133plus2.db")
+
+print('Head genes diferencialmente expresados en AMLvsCML')
+head(topTabAMLvsCML)
+
+print('HeadTop 5 genes diferencialmente expresados en AMLvsNoL')
+head(topTabAMLvsNoL)
+
+print('Head genes diferencialmente expresados en CMLvsNoL')
+head(topTabCMLvsNoL)
+```
+
+Creación de VolcanoPlots:
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+# Cargar bibliotecas necesarias
+library(ggplot2)
+
+# Definir una función para crear volcano plot
+create_volcano_plot <- function(results, title) {
+  # Crear el volcano plot
+  volcano <- ggplot(results, aes(x = logFC, y = -log10(P.Value))) +
+    geom_point(aes(color = ifelse(abs(logFC) > 1 & P.Value < 0.05, "red", "black")), alpha = 0.5) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "blue") +
+    scale_color_manual(values = c("black", "red"), guide = 'none') +
+    labs(title = title,
+         x = "log2 Fold Change",
+         y = "-log10(P-value)",
+         color = "Significance") +
+    theme_minimal()
+  
+  # Imprimir el plot
+  print(volcano)
+}
+
+# Crear volcano plots para cada comparación
+create_volcano_plot(topTabAMLvsCML, "Volcano Plot: AML vs CML")
+create_volcano_plot(topTabAMLvsNoL, "Volcano Plot: AML vs NoL")
+create_volcano_plot(topTabCMLvsNoL, "Volcano Plot: CML vs NoL")
+
+
+
+```
+
+En los volcano plots AMLvsCML y AMLvsNoL se puede observar un mayor número de genes expresados diferencialmente de forma significativa (puntos rojos) en la parte izquierda del plot, esto indica que la mayoría de genes diferencialmente expresados se deben a una disminución de la expresión génica respecto al grupo con los que se les está comparando. Esto puede venir dado por la no expresión de muchos genes relacionados con la maduración de las células hematopoyéticas en pacientes con AML, debido a que en la CML o en NoL las células maduran completamente.
+
+En el volcano plot CMLvsNoL no se observan genes diferencialmente expresados de forma significativa. Esto indica que no existen  diferencias tan notables de la expresión génica entre estas dos situaciones como en las comparaciones anteriores. Esta expresion génica menos diferencial puede ser debida a que en ambos casos las células hematopoyéticas alcanzan el estado de madurez y por lo tanto las diferencias entre CML y NoL son muy sutiles. Esto encaja con que la LMC sea una forma más lenta y progresiva de leucemia en la que los pacientes puedan vivir durante varios años sin notar los efectos negativos de la enfermedad.
+
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+
+res <- decideTests(fit2)
+
+# Calculamos los valores absolutos en cada fila
+sum_res_rows <- apply(abs(res), 1, sum)
+
+# Subseteamos el valore original de la matriz de resultados basados en las filas con al menos un valor != 0
+res_selected <- res[sum_res_rows != 0, ]
+ 
+print(summary(res_selected))
+
+```
+
+El resumen indica cuántos genes muestran diferentes niveles de expresión entre diferentes tipos de leucemia, así como entre la leucemia y muestras normales. La tabla muestra tres comparaciones principales:
+
+- AML vs CML: Indica los genes que están sobreexpresados (Up), a la subexpresados (Down) o no muestran cambios significativos (NotSig) en su expresión entre la AML y la CML.
+- AML vs NoL: Indica cuántos genes muestran diferencias en la expresión entre AML y NoL.
+- CML vs NoL: Muestra los cambios en la expresión génica entre CML y las muestras NoL.
+
+Se puede ver en la tabla que en todos los casos los genes diferencialmente expresados están sobreexpresados. Esto contradice las observaciones descritas en los VolcanoPlot. Cabe destacar que en el volcano plot daba la sensación de que hubiese un mayor número de genes diferencialmente expresados en la categoría Down porque estos puntos son más dispersos y no se solapan tanto. Los genes diferencialmente expresados Up no estan tan dispersos y por eso a simple vista puede darse el caso de que parezca que hay un menor número, cuando en realidad éste es ligeramente mayor en AMLvsCML y AMLvsNoL y muy superior en CMLvsNoL.  
+
+AMLvsCML es el grupo con un mayor número de genes diferencialmente expresados, esto indica que hay una expresión génica muy diferente entre estos dos tipos de Leucemias.
+
+CMLvsNoL es el grupo con un menor número de genes diferencialmente expresados. Esto indica que de los dos tipos de Leucemia CML es el que presenta una expresión génica más similar a los individuos sin leucemia NoL. Una hipótesis a plantear es que como en la CML las células hematopoyéticas llegan a madurar, aunque tengan una expresión génica y un comportamiento anormal, estas se asemejan más a las muestras del grupo NoL, mientras que AML al no dejar madurar las células hematopoyéticas, presenta una expresión génica más diferenciada de NoL.
+
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+vennDiagram (res_selected[,1:3], main="Genes in common #1", cex=0.9)
+```
+
+El venn diagram nos permite ver rápidamente que número de genes diferencialmente expresados comparte cada grupo y cúales son únicos y característicos de cada condición.
+
+AMLvsCML contiene el mayor número de genes únicos diferencialmente expresados siendo así la condición que presenta más diferencias y cambios en su expresión génica. Cabe destacar también que AMLvsCML y AMLvsNoL comparten 1352 genes. Estas dos condiciones comparten un número de genes diferencialmente expresados superior a los genes compartidos en cualquiera de las otras situaciones. 
+
+### Anotacion de los genes
+
+```{r,echo=TRUE,message=FALSE, warning=FALSE}
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+
+keytypes(org.Hs.eg.db)
+
+# seleccionamos el identificador Symbol, juntamente con el GeneName
+
+cols <- c("SYMBOL", "GENENAME")
+annotation_AMLvsCML <- AnnotationDbi::select(org.Hs.eg.db, keys = rownames(topTabAMLvsCML), columns = cols, keytype = "ENSEMBL")
+annotation_AMLvsNoL <- AnnotationDbi::select(org.Hs.eg.db, keys = rownames(topTabAMLvsNoL), columns = cols, keytype = "ENSEMBL")
+annotation_CMLvsNoL <- AnnotationDbi::select(org.Hs.eg.db, keys = rownames(topTabCMLvsNoL), columns = cols, keytype = "ENSEMBL")
+
+head(annotation_AMLvsCML)
+head(annotation_AMLvsNoL)
+head(annotation_CMLvsNoL)
+```
+
+Anotamos con Symbol los genes para cada condición y también anotamos el GeneName para tener una descripción un poco más extensa de las posibles funcionalidades e implicaciones del gen en cuestión.
+
+### Analisis de significación Biológica
+
+#### Gene Set Enrichment Analysis
+
+
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+library(clusterProfiler)
+library(enrichplot)
+# we use ggplot2 to add x axis labels (ex: ridgeplot)
+library(ggplot2)
+# SET THE DESIRED ORGANISM HERE
+organism = "org.Hs.eg.db"
+#BiocManager::install(organism, character.only = TRUE)
+library(organism, character.only = TRUE)
+
+perform_gseGO <- function(topTab, organism, nPerm = 10000, minGSSize = 3, maxGSSize = 800, pvalueCutoff = 0.05, verbose = TRUE, pAdjustMethod = "none") {
+  # Extract log2 fold change values
+  original_gene_list <- topTab$logFC
+  
+  # Name the vector
+  names(original_gene_list) <- rownames(topTab)
+  
+  # Omit any NA values
+  gene_list <- na.omit(original_gene_list)
+  
+  # Sort the list in decreasing order (required for clusterProfiler)
+  gene_list <- sort(gene_list, decreasing = TRUE)
+  
+  # Perform gene set enrichment analysis using gseGO
+  gse <- gseGO(geneList = gene_list, 
+               ont = "ALL", 
+               keyType = "ENSEMBL", 
+               nPerm = nPerm, 
+               minGSSize = minGSSize, 
+               maxGSSize = maxGSSize, 
+               pvalueCutoff = pvalueCutoff, 
+               verbose = verbose, 
+               OrgDb = organism, 
+               pAdjustMethod = pAdjustMethod)
+  
+  return(gse)
+}
+
+# Example usage
+# Assuming 'topTabAMLvsCML' and 'organism' are already defined
+gseGO_AMLvsCML <- perform_gseGO(topTabAMLvsCML, organism)
+gseGO_AMLvsNoL <- perform_gseGO(topTabAMLvsNoL, organism)
+gseGO_CMLvsNoL <- perform_gseGO(topTabCMLvsNoL, organism)
+
+```
+
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+require(DOSE)
+# Required libraries
+require(DOSE)
+require(gridExtra)
+require(ggplot2)
+
+# Generate the dot plots
+dplot_gseGO_AMLvsCML <- dotplot(gseGO_AMLvsCML, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs CML")
+
+dplot_gseGO_AMLvsNoL <- dotplot(gseGO_AMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs NoL")
+
+dplot_gseGO_CMLvsNoL<- dotplot(gseGO_CMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("CML vs NoL")
+
+# Arrange the plots in a grid
+dplot_gseGO_AMLvsCML
+dplot_gseGO_AMLvsNoL
+dplot_gseGO_CMLvsNoL
+
+```
+
+Los DotPlots para cada condición nos permiten ver que gene sets se estan expresando diferencialmente en cada una de las 3 comparaciones:
+
+ - AML vs CML: Se observa la sobreexpresión de genes relacionados con procesos de reparación de la membrana plasmática y con la           transcripción, metilación, y maduración del RNA. Estos procesos pueden estar relacionados con una actividad metabólica más            intensa y una proliferación celular mucho más rápida en las células hematopoyeticas en AML respecto CML debido a que el primero       es un cáncer más rápido y agresivo (Terwilliger,et al 2017). También se observa una subexpresión moderada de genes relacionados       con lisosomas, y respuesta inflamatoria.
+ 
+ - AML vs NoL: Se observa la fuerte sobreexpresión de genes principalmente relacionados con los limfoides de la mucosa respiratoria,    el destino de diferenciación celular, morfogénesis celular del sistema hematopoyético. También se observa la subexpresión de gene     sets relacionados con la activación de los limfocitos. Estas diferencias de expresión en los gene sets concuerdan con los efectos     descritos en la introducción, donde la AML induce la proliferacion de células hematopoyéticas inmaduras y para ello cambia la         mórfogénesis celular y el destino de diferenciación de éstas células. También concuerdan con los efectos la supresión de genes        relacionados con la activación de los limfocitos, debido a que las células hematopoyéticas inmaduras no llegan a diferenciarse y a    crear linfocitos.
+ 
+ - CML vs NoL: Se observa sobreexpresión en genes relacionados con la respuesta immune y pathways de comunicación celular. Se             encuentran subexpresados genes relacionados con procesos metabólicos proteicos y peptídicos. El incremento de la expresión de         genes relacionados con la respuesta immune es explicado por la hiperproliferación de glóbulos blancos en la CML.
+
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+# categorySize can be either 'pvalue' or 'geneNum'
+#cnetplot(gse, categorySize="pvalue", foldChange=gene_list, showCategory = 5)
+
+x_AMLvsCML <- pairwise_termsim(gseGO_AMLvsCML) 
+x_AMLvsNoL <- pairwise_termsim(gseGO_AMLvsNoL)
+x_CMLvsNoL <- pairwise_termsim(gseGO_CMLvsNoL)
+
+emapplot(x_AMLvsCML,showCategory = 10)+ggtitle("AMLvsCML")
+emapplot(x_AMLvsNoL,showCategory = 10)+ggtitle("AMLvsNoL")
+emapplot(x_CMLvsNoL,showCategory = 10)+ggtitle("CMLvsNoL")
+
+
+
+```
+
+El mapa de enriquecimiento organiza los términos enriquecidos en una red con lineas que conectan conjuntos de genes superpuestos. De esta manera, los conjuntos de genes que se superponen entre sí tienden a agruparse, lo que facilita la identificación de módulos funcionales.
+
+En el mapa AMLvsCML se ve enriquecida una expresión diferencial referente a la respuesta immune, debido a que los gene sets 'inflamatory response', 'regulation of cytokine production lysosome', 'response to bacterium', 'immune efector process' y 'cytokine producton' se encuentran altamente interrelacionados. Estas diferencias de expresion génica relacionadas con la respuesta immune tienen que ver, como ya he mencionado en ocasiones anteriores, con la hiperproliferación de glóbulos blancos en la CML y en la no maduración de éstos en la AML.
+
+En los mapas AMLvsNoL y CMLvsNoL no encontramos agrupaciones importantes que impliquen 3 gene sets o más.
+
+
+#### KEGG Gene Set Enrichment Analysis
+
+
+
+KEGG GSEA utiliza conjuntos de genes específicos de la base de datos de KEGG (Kyoto Encyclopedia of Genes and Genomes). Estos conjuntos de genes representan vías biológicas, procesos metabólicos y otras entidades biológicas definidas en KEGG.
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(clusterProfiler)
+library(org.Hs.eg.db)  # Use org.Dm.eg.db for Drosophila or appropriate OrgDb for other organisms
+
+perform_kegg_gsea <- function(topTab, organism_db = org.Hs.eg.db, kegg_organism = "hsa") {
+  # Extract log2 fold change values
+  original_gene_list <- topTab$logFC
+  
+  # Name the vector
+  names(original_gene_list) <- rownames(topTab)
+  # Convert gene IDs for gseKEGG function
+  ids <- bitr(names(original_gene_list), fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = organism_db)
+  
+  # Remove duplicate IDs (use "ENSEMBL", but it should be whatever was selected as keyType)
+  dedup_ids <- ids[!duplicated(ids[c("ENSEMBL")]),]
+  
+  # Create a new dataframe df2 which has only the genes which were successfully mapped using the bitr function above
+  df2 <- topTabAMLvsCML[rownames(topTabAMLvsCML) %in% dedup_ids$ENSEMBL, ]
+  
+  # Create a new column in df2 with the corresponding ENTREZ IDs
+  df2$ENTREZID <- dedup_ids$ENTREZID[match(rownames(df2), dedup_ids$ENSEMBL)]
+  
+  # Create a vector of the gene universe
+  kegg_gene_list <- df2$logFC
+  
+  # Name vector with ENTREZ ids
+  names(kegg_gene_list) <- df2$ENTREZID
+  
+  # Omit any NA values 
+  kegg_gene_list <- na.omit(kegg_gene_list)
+  
+  # Sort the list in decreasing order (required for clusterProfiler)
+  kegg_gene_list <- sort(kegg_gene_list, decreasing = TRUE)
+  
+  # Perform KEGG GSEA
+  kk2 <- gseKEGG(geneList = kegg_gene_list,
+                 organism = kegg_organism,
+                 nPerm = 10000,
+                 minGSSize = 3,
+                 maxGSSize = 800,
+                 pvalueCutoff = 0.05,
+                 pAdjustMethod = "none",
+                 keyType = "ncbi-geneid")
+  
+  return(kk2)
+}
+
+
+# Perform KEGG GSEA
+kk_AMLvsCML <- perform_kegg_gsea(topTabAMLvsCML)
+kk_AMLvsNoL <- perform_kegg_gsea(topTabAMLvsNoL)
+kk_CMLvsNoL <- perform_kegg_gsea(topTabCMLvsNoL)
+
+```
+
+
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+# Generate the dot plots
+dplot_KEGG_AMLvsCML <- dotplot(kk_AMLvsCML, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs CML")
+
+dplot_KEGG_AMLvsNoL <- dotplot(kk_AMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs NoL")
+
+dplot_KEGG_CMLvsNoL<- dotplot(kk_CMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("CML vs NoL")
+
+# Arrange the plots in a grid
+dplot_KEGG_AMLvsCML
+dplot_KEGG_AMLvsNoL
+dplot_KEGG_CMLvsNoL
+
+
+```
+
+Los DotPlots del analisis de KEGG para cada condición nos permiten ver que rutas metabólicas se estan expresando diferencialmente en cada una de las 3 comparaciones:
+
+ - AML vs CML: Se observa la sobreexpresión de genes implicados en rutas metabólicas ribosomales y del virus del herpes. Se encuentran     subexpresados genes implicados en las rutas metabólicas características de la malaria, la tuberculosis, y del fagosoma. La            sobreexpresión genes implicados en las rutas metabólicas ribosomales y características del virus del herpes puede estar               relacionada    con la agresividad y la prolifereación celular del AML, debido a que el cáncer, para poder replicarse, crecer y        fortalecerse debe llevar a cabo una actividad de síntesis proteica muy intensa para avastecer sus necesidades de proliferación e      infección. 
+ 
+ - AML vs NoL: Encontramos una situación similar a la del caso anterior en la que se observa la fuerte sobreexpresión de genes            implicados en rutas metabólicas ribosomales y del virus del herpes. Esto puede venir explicado por la alta proliferacion celular      del AML respecto a los pacientes NoL, que tienen unos niveles metabólicos normales 
+ 
+ - CML vs NoL: Se observa la fuerte sobreexpresión de genes implicados en rutas metabólicas ribosomales y del virus del herpes al         igual que en los dos caso anteriores. No obstante, en el CML la proliferación celular no es tan fuerte y agresiva como en el AML      (Radich, J. P., et al. (2013)). Puede ser que la hiperproliferación de glóbulos blancos esté también relacionada con un               aumento de la expresión de genes implicados en rutas metabólicas ribosomales, y que por esto se encuentren estas rutas                sobreexpresadas en el análisis KEGG.
+ 
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+ridgeplot(kk_AMLvsCML) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("AMLvsCML")
+ridgeplot(kk_AMLvsNoL) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("AMLvsNoL") 
+ridgeplot(kk_CMLvsNoL) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("CML vs NoL")
+```
+
+En el RidgePlot observamos la distribución de enriquecimiento de las vías metabólicas mencionadas en el eje 'y'. 
+
+Esto nos permite una vez más ver de forma distinta que procesos KEGG estan diferencialmente expresados en cada condicion y cual es exactamente la distribución de estas diferencias. 
+
+Las distribuciones superiores a 0 en el eje de las 'x' indican sobrexpresión, mientras que las distribuciones con valores inferiores a 0 representan subexpresión.
+
+Los RidgePlots confirman la sobreexpresión de genes ribosomales y del virus del herpes en AML y CML en comparación con NoL. También corroboran la subexpresión de genes en las rutas de malaria, tuberculosis y fagosoma. La mayor intensidad de sobreexpresión en AML destaca su naturaleza más agresiva comparada con CML. Estos resultados refuerzan la hipótesis de que la alta proliferación celular en AML, y en menor medida en CML, está asociada con una mayor demanda de síntesis proteica.
+
+```{r,echo=FALSE,message=FALSE, warning=FALSE}
+k_AMLvsCML <- pairwise_termsim(kk_AMLvsCML) 
+k_AMLvsNoL <- pairwise_termsim(kk_AMLvsNoL)
+k_CMLvsNoL <- pairwise_termsim(kk_CMLvsNoL)
+
+emapplot(k_AMLvsCML,showCategory = 10)+ggtitle("AMLvsCML")
+emapplot(k_AMLvsNoL,showCategory = 10)+ggtitle("AMLvsNoL")
+emapplot(k_CMLvsNoL,showCategory = 10)+ggtitle("CMLvsNoL")
+```
+
+En el mapa de enriquecimiento AMLvsCML encontramos procesos KEGG relacionados con el fagososma, la tuberculosis, la leishmaniasis y la formacion de trampas extracelulares de neutrófilos.
+
+La observación de la agrupacion de estos procesos diferencialmente expresados puede deberse a una relación con la afectación de la leucemia en el sistema immune, debido a que los 4 procesos KEGG estan directamente relacionados con esta respuesta. 
+
+Las trampas extracelulares de neutrófilo (NETs) son estructuras en forma de red compuestas de ADN y proteínas granulares que el neutrófilo libera al espacio extracelular en respuesta a diferentes estímulos. La NETosis es un mecanismo de muerte celular, que además cumple una función microbicida destruyendo o inhibiendo el crecimiento de microorganismos (Pérez Zapata, et al 2020). Las alteraciones celulares que la CML genera en los leucocitos podría desencadenar NETosis. De ahí que aparezca en el mapa agrupado con las demás KEGG.
+
+En los mapas AMLvsNoL y CMLvsNoL no encontramos agrupaciones importantes que impliquen 3 gene sets o más.
+
+
+## Conclusiones
+
+En este estudio de expresión diferencial de la leucemia mieloblastica he:
+
+- Preparado los datos a analizar del 'leukemiasEset'
+
+- Hecho un análisis exploratorio y control de calidad y aplicado una normalización logarítmica
+
+- Construido las matrizes de diseño y de contrastes
+
+- Obtenenido las listas de genes diferencialmente expresados para cada comparación
+
+- Anotado los genes diferencialmente expresados
+
+- Analizado la significación biológica mediante un GSEA y un KEGG GSEA de las comparaciones:
+    - Leucemia mieloide aguda (AL) frente a leucemia mieloide crónica (CML)
+    - Leucemia mieloide aguda (AL) frente a “No leucemia” (NoL)
+    - Leucemia mieloide crónica (CML) frente a “No leucemia” (NoL)
+
+Finalmente he observado diferencias de expresión significativas en las 3 comparaciones. Estos análisis proporcionan una visión coherente de las diferencias en la expresión génica entre AML, CML y NoL, subrayando las rutas metabólicas y procesos biológicos clave en estas condiciones:
+
+- Los análisis de volcano plots muestran que en AML hay un mayor número de genes significativamente subexpresados en comparación con CML y NoL, lo que sugiere la falta de expresión de genes relacionados con la maduración de células hematopoyéticas. La comparación entre AML y CML resalta la agresividad y rápida proliferación celular de AML. En contraste, el volcano plot de CML vs NoL indica menos genes diferencialmente expresados, reflejando similitudes en la expresión génica y la naturaleza más lenta y progresiva de CML.
+
+- Los DotPlots y RidgePlots confirman la sobreexpresión de genes relacionados con rutas metabólicas ribosomales y del virus del herpes en AML y CML en comparación con NoL, lo que está asociado con la alta demanda de síntesis proteica y proliferación celular en AML y, en menor medida, en CML. Además, se observa una subexpresión de genes en rutas de malaria, tuberculosis y fagosoma en AML, indicando alteraciones en estas rutas específicas.
+
+- Los mapas de enriquecimiento destacan los procesos relacionados con la respuesta inmune en AML vs CML, incluyendo la formación de trampas extracelulares de neutrófilos (NETs), sugiriendo que las alteraciones en los leucocitos en CML podrían desencadenar NETosis. En las comparaciones AML vs NoL y CML vs NoL no se encontraron agrupaciones significativas de conjuntos de genes, sugiriendo menos variaciones en la expresión génica en estos contextos.
+
+
+## Bibliografía
+
+Terwilliger, T., Abdul-Hay, M. Acute lymphoblastic leukemia: a comprehensive review and 2017 update. Blood Cancer J. 7, e577 (2017).
+
+Radich, J. P., et al. (2013). "Gene expression changes associated with progression and response in chronic myeloid leukemia." Proceedings of the National Academy of Sciences, 103(8), 2794-2799
+
+Pérez Zapata, L. J., Trejos Ramírez, A. M., Arias Sierra, A. A., & López Quintero, J. Álvaro. (2020). Formación de trampas extracelulares de neutrófilos humanos in vitro: descripción de un método. Hechos Microbiológicos, 10(1-2).
+
+## Anexos
+
+Código Análisis exploratorio y control de calidad
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+library(Biobase)
+library(ggplot2)
+
+# Subseteamos daots AML, CML, and NoL
+aml_samples <- pData(selected_samples_r)$LeukemiaType == "AML"
+cml_samples <- pData(selected_samples_r)$LeukemiaType == "CML"
+nol_samples <- pData(selected_samples_r)$LeukemiaType == "NoL"
+
+# Extraemos niveles de expresion
+aml_expr <- exprs(selected_samples_r)[, aml_samples]
+cml_expr <- exprs(selected_samples_r)[, cml_samples]
+nol_expr <- exprs(selected_samples_r)[, nol_samples]
+
+# Los combinamos en un unico expresion dataset
+expr_data <- data.frame(
+  Expression = c(aml_expr, cml_expr, nol_expr),
+  LeukemiaType = rep(c("AML", "CML", "NoL"), c(ncol(aml_expr), ncol(cml_expr), ncol(nol_expr)))
+)
+
+# Creamos histogramas
+histogram_expr <- ggplot(expr_data, aes(x = Expression)) +
+  geom_histogram(fill = "blue", color = "black", bins = 30) +
+  labs(title = "Histogram of Expression Levels") +
+  facet_wrap(~ LeukemiaType, scales = "free")
+
+# printamos
+print(histogram_expr)
+
+```
+
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+
+
+# Definimos colores
+colors <- c("AML" = "blue", "CML" = "red", "NoL" = "green")
+
+# Creamos boxplot
+boxplot <- ggplot(expr_data, aes(x = LeukemiaType, y = Expression, fill = LeukemiaType)) +
+  geom_boxplot() +
+  scale_fill_manual(values = colors) +  # Assign custom colors
+  labs(title = "Expression Levels of AML, CML, and NoL") +
+  xlab("Leukemia Type") +
+  ylab("Expression Level")
+
+print(boxplot)
+
+```
+
+
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+
+
+selected_samples_log <- selected_samples_r # copiamos la variable para no modificarla de forma definitiva
+
+expr_matrix <- exprs(selected_samples_r)
+
+#aplciamos transformacion
+log2_expr_matrix <- log2(expr_matrix)  
+
+# actualizamos datos con la transformacion
+exprs(selected_samples_log) <- log2_expr_matrix
+
+# Creamos subsets
+aml_samples_log <- pData(selected_samples_log)$LeukemiaType == "AML"
+cml_samples_log <- pData(selected_samples_log)$LeukemiaType == "CML"
+nol_samples_log <- pData(selected_samples_log)$LeukemiaType == "NoL"
+
+# Extraemos niveles de expresion por cada categoria
+aml_expr_log <- exprs(selected_samples_log)[, aml_samples_log]
+cml_expr_log <- exprs(selected_samples_log)[, cml_samples_log]
+nol_expr_log <- exprs(selected_samples_log)[, nol_samples_log]
+
+# Combinamos los niveles de expresion en un unico dataframe
+expr_data_log <- data.frame(
+  Expression = c(aml_expr_log, cml_expr_log, nol_expr_log),
+  LeukemiaType = rep(c("AML", "CML", "NoL"), c(ncol(aml_expr_log), ncol(cml_expr_log), ncol(nol_expr_log)))
+)
+
+# colores
+colors <- c("AML" = "blue", "CML" = "red", "NoL" = "green")
+
+# Creamos boxplot
+
+boxplot <- ggplot(expr_data_log, aes(x = LeukemiaType, y = Expression, fill = LeukemiaType)) +
+  geom_boxplot() +
+  scale_fill_manual(values = colors) +  # Assign custom colors
+  labs(title = "Log2 Transformed Expression Levels of AML, CML, and NoL") +
+  xlab("Leukemia Type") +
+  ylab("Log2 Expression Level")
+
+print(boxplot)
+```
+
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+#PCA
+
+
+# 1. Extraemos matriz de expresion
+expr_matrix <- exprs(selected_samples_r)
+
+# 2. Transponemos
+expr_matrix <- t(expr_matrix)
+
+# 3. Escalamos
+scaled_expr_matrix <- scale(expr_matrix)
+
+# 4. Calculamos PCA
+pca_result <- prcomp(scaled_expr_matrix)
+
+# Extraemos el sampletype
+sample_types <- pData(selected_samples_r)$LeukemiaType
+
+#Colores
+sample_colors <- ifelse(sample_types == "AML", "red",
+                        ifelse(sample_types == "CML", "blue", "green"))
+
+# Printamos PCA
+plot(pca_result$x[, 1], pca_result$x[, 2], 
+     col = sample_colors,
+     xlab = paste0("PC1 (", round(100 * summary(pca_result)$importance[2, 1]), "% Variance)"), 
+     ylab = paste0("PC2 (", round(100 * summary(pca_result)$importance[2, 2]), "% Variance)"), 
+     main = "PCA Plot")
+
+# Leyenda
+legend("topright", legend = unique(sample_types), col = unique(sample_colors), pch = 1)
+
+
+
+```
+
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+library(ggplot2)
+library(gridExtra)
+
+# Funcion para crear MA plot
+create_ma_plot <- function(group1_data, group2_data, group1_name, group2_name) {
+  # Calculamos log fold change (M) y average expression (A)
+  log_fold_change <- rowMeans(group1_data) - rowMeans(group2_data)
+  average_expression <- rowMeans(cbind(group1_data, group2_data))
+  
+  # Creamos dataframe para el grafico
+  ma_data <- data.frame(M = log_fold_change, A = average_expression)
+  
+  # Generamos MA plot
+  p <- ggplot(ma_data, aes(x = A, y = M)) +
+    geom_point(alpha = 0.5) +
+    geom_hline(yintercept = 0, color = "red", linetype = "dashed") +
+    labs(title = paste("MA Plot:", group1_name, "vs", group2_name),
+         x = "Average Expression (A)",
+         y = "Log Fold Change (M)") +
+    theme_minimal()
+  
+  return(p)
+}
+
+expr_data <- exprs(selected_samples_r)
+
+sample_info <- pData(selected_samples_r)
+
+aml_data <- expr_data[, sample_info$LeukemiaType == "AML"]
+cml_data <- expr_data[, sample_info$LeukemiaType == "CML"]
+nol_data <- expr_data[, sample_info$LeukemiaType == "NoL"]
+
+# Creamos MA plots
+ma_plot_aml_vs_cml <- create_ma_plot(aml_data, cml_data, "AML", "CML")
+ma_plot_aml_vs_nol <- create_ma_plot(aml_data, nol_data, "AML", "NoL")
+ma_plot_cml_vs_nol <- create_ma_plot(cml_data, nol_data, "CML", "NoL")
+
+# Arrange the plots in a single window
+grid.arrange(ma_plot_aml_vs_cml, ma_plot_aml_vs_nol, ma_plot_cml_vs_nol, nrow = 1)
+
+################################################################################################
+
+
+# Repetimos el proceso para las muestras normalizadas
+expr_data <- exprs(selected_samples_log)
+
+sample_info <- pData(selected_samples_log)
+
+aml_data <- expr_data[, sample_info$LeukemiaType == "AML"]
+cml_data <- expr_data[, sample_info$LeukemiaType == "CML"]
+nol_data <- expr_data[, sample_info$LeukemiaType == "NoL"]
+
+ma_plot_aml_vs_cml_log <- create_ma_plot(aml_data, cml_data, "AML", "CML")
+ma_plot_aml_vs_nol_log <- create_ma_plot(aml_data, nol_data, "AML", "NoL")
+ma_plot_cml_vs_nol_log <- create_ma_plot(cml_data, nol_data, "CML", "NoL")
+
+grid.arrange(ma_plot_aml_vs_cml_log, ma_plot_aml_vs_cml_log, ma_plot_aml_vs_cml_log, nrow = 1)
+
+```
+
+Codigo Obtención de las listas de genes diferencialmente expresados para cada comparación
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+# Ajustar el modelo lineal
+library(annotate)
+
+fit <- lmFit(expr_data, design_matrix)
+
+# Aplicar los contrastes
+fit2 <- contrasts.fit(fit, contrast_matrix)
+
+# Realizar el análisis bayesiano
+fit2 <- eBayes(fit2)
+
+# Ver los resultados
+results_aml_vs_cml <- topTable(fit2, coef = "AMLvsCML")
+results_aml_vs_nol <- topTable(fit2, coef = "AMLvsNoL")
+results_cml_vs_nol <- topTable(fit2, coef = "CMLvsNoL")
+
+
+# Mostrar resultados
+#print(results_aml_vs_cml)
+#print(results_aml_vs_nol)
+#print(results_cml_vs_nol)
+
+topTabAMLvsCML <- topTable (fit2, number=nrow(fit2), coef="AMLvsCML", adjust="fdr")
+topTabAMLvsNoL <- topTable (fit2, number=nrow(fit2), coef="AMLvsNoL", adjust="fdr")
+topTabCMLvsNoL  <- topTable (fit2, number=nrow(fit2) , coef="CMLvsNoL", adjust="fdr")
+
+#topTabAMLvsCML$genesSymbol <- getSYMBOL(topTabAMLvsCML[, 1],"hgu133plus2.db")
+
+print('Head genes diferencialmente expresados en AMLvsCML')
+head(topTabAMLvsCML)
+
+print('HeadTop 5 genes diferencialmente expresados en AMLvsNoL')
+head(topTabAMLvsNoL)
+
+print('Head genes diferencialmente expresados en CMLvsNoL')
+head(topTabCMLvsNoL)
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+# Cargar bibliotecas necesarias
+library(ggplot2)
+
+# Definir una función para crear volcano plot
+create_volcano_plot <- function(results, title) {
+  # Crear el volcano plot
+  volcano <- ggplot(results, aes(x = logFC, y = -log10(P.Value))) +
+    geom_point(aes(color = ifelse(abs(logFC) > 1 & P.Value < 0.05, "red", "black")), alpha = 0.5) +
+    geom_hline(yintercept = -log10(0.05), linetype = "dashed", color = "blue") +
+    geom_vline(xintercept = c(-1, 1), linetype = "dashed", color = "blue") +
+    scale_color_manual(values = c("black", "red"), guide = 'none') +
+    labs(title = title,
+         x = "log2 Fold Change",
+         y = "-log10(P-value)",
+         color = "Significance") +
+    theme_minimal()
+  
+  # Imprimir el plot
+  print(volcano)
+}
+
+# Crear volcano plots para cada comparación
+create_volcano_plot(topTabAMLvsCML, "Volcano Plot: AML vs CML")
+create_volcano_plot(topTabAMLvsNoL, "Volcano Plot: AML vs NoL")
+create_volcano_plot(topTabCMLvsNoL, "Volcano Plot: CML vs NoL")
+
+
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+res <- decideTests(fit2)
+
+# Calculamos los valores absolutos en cada fila
+sum_res_rows <- apply(abs(res), 1, sum)
+
+# Subseteamos el valore original de la matriz de resultados basados en las filas con al menos un valor != 0
+res_selected <- res[sum_res_rows != 0, ]
+ 
+print(summary(res_selected))
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+vennDiagram (res_selected[,1:3], main="Genes in common #1", cex=0.9)
+```
+
+
+Codigo Gene Set Enrichment Analysis
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+library(clusterProfiler)
+library(enrichplot)
+# we use ggplot2 to add x axis labels (ex: ridgeplot)
+library(ggplot2)
+# SET THE DESIRED ORGANISM HERE
+organism = "org.Hs.eg.db"
+#BiocManager::install(organism, character.only = TRUE)
+library(organism, character.only = TRUE)
+
+perform_gseGO <- function(topTab, organism, nPerm = 10000, minGSSize = 3, maxGSSize = 800, pvalueCutoff = 0.05, verbose = TRUE, pAdjustMethod = "none") {
+  # Extract log2 fold change values
+  original_gene_list <- topTab$logFC
+  
+  # Name the vector
+  names(original_gene_list) <- rownames(topTab)
+  
+  # Omit any NA values
+  gene_list <- na.omit(original_gene_list)
+  
+  # Sort the list in decreasing order (required for clusterProfiler)
+  gene_list <- sort(gene_list, decreasing = TRUE)
+  
+  # Perform gene set enrichment analysis using gseGO
+  gse <- gseGO(geneList = gene_list, 
+               ont = "ALL", 
+               keyType = "ENSEMBL", 
+               nPerm = nPerm, 
+               minGSSize = minGSSize, 
+               maxGSSize = maxGSSize, 
+               pvalueCutoff = pvalueCutoff, 
+               verbose = verbose, 
+               OrgDb = organism, 
+               pAdjustMethod = pAdjustMethod)
+  
+  return(gse)
+}
+
+# Example usage
+# Assuming 'topTabAMLvsCML' and 'organism' are already defined
+gseGO_AMLvsCML <- perform_gseGO(topTabAMLvsCML, organism)
+gseGO_AMLvsNoL <- perform_gseGO(topTabAMLvsNoL, organism)
+gseGO_CMLvsNoL <- perform_gseGO(topTabCMLvsNoL, organism)
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+require(DOSE)
+# Required libraries
+require(DOSE)
+require(gridExtra)
+require(ggplot2)
+
+# Generate the dot plots
+dplot_gseGO_AMLvsCML <- dotplot(gseGO_AMLvsCML, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs CML")
+
+dplot_gseGO_AMLvsNoL <- dotplot(gseGO_AMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs NoL")
+
+dplot_gseGO_CMLvsNoL<- dotplot(gseGO_CMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("CML vs NoL")
+
+# Arrange the plots in a grid
+dplot_gseGO_AMLvsCML
+dplot_gseGO_AMLvsNoL
+dplot_gseGO_CMLvsNoL
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+# categorySize can be either 'pvalue' or 'geneNum'
+#cnetplot(gse, categorySize="pvalue", foldChange=gene_list, showCategory = 5)
+
+x_AMLvsCML <- pairwise_termsim(gseGO_AMLvsCML) 
+x_AMLvsNoL <- pairwise_termsim(gseGO_AMLvsNoL)
+x_CMLvsNoL <- pairwise_termsim(gseGO_CMLvsNoL)
+
+emapplot(x_AMLvsCML,showCategory = 10)+ggtitle("AMLvsCML")
+emapplot(x_AMLvsNoL,showCategory = 10)+ggtitle("AMLvsNoL")
+emapplot(x_CMLvsNoL,showCategory = 10)+ggtitle("CMLvsNoL")
+
+
+
+```
+
+Codigo KEGG Gene Set Enrichment Analysis
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+# Load necessary libraries
+library(clusterProfiler)
+library(org.Hs.eg.db)  # Use org.Dm.eg.db for Drosophila or appropriate OrgDb for other organisms
+
+perform_kegg_gsea <- function(topTab, organism_db = org.Hs.eg.db, kegg_organism = "hsa") {
+  # Extract log2 fold change values
+  original_gene_list <- topTab$logFC
+  
+  # Name the vector
+  names(original_gene_list) <- rownames(topTab)
+  # Convert gene IDs for gseKEGG function
+  ids <- bitr(names(original_gene_list), fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = organism_db)
+  
+  # Remove duplicate IDs (use "ENSEMBL", but it should be whatever was selected as keyType)
+  dedup_ids <- ids[!duplicated(ids[c("ENSEMBL")]),]
+  
+  # Create a new dataframe df2 which has only the genes which were successfully mapped using the bitr function above
+  df2 <- topTabAMLvsCML[rownames(topTabAMLvsCML) %in% dedup_ids$ENSEMBL, ]
+  
+  # Create a new column in df2 with the corresponding ENTREZ IDs
+  df2$ENTREZID <- dedup_ids$ENTREZID[match(rownames(df2), dedup_ids$ENSEMBL)]
+  
+  # Create a vector of the gene universe
+  kegg_gene_list <- df2$logFC
+  
+  # Name vector with ENTREZ ids
+  names(kegg_gene_list) <- df2$ENTREZID
+  
+  # Omit any NA values 
+  kegg_gene_list <- na.omit(kegg_gene_list)
+  
+  # Sort the list in decreasing order (required for clusterProfiler)
+  kegg_gene_list <- sort(kegg_gene_list, decreasing = TRUE)
+  
+  # Perform KEGG GSEA
+  kk2 <- gseKEGG(geneList = kegg_gene_list,
+                 organism = kegg_organism,
+                 nPerm = 10000,
+                 minGSSize = 3,
+                 maxGSSize = 800,
+                 pvalueCutoff = 0.05,
+                 pAdjustMethod = "none",
+                 keyType = "ncbi-geneid")
+  
+  return(kk2)
+}
+
+
+# Perform KEGG GSEA
+kk_AMLvsCML <- perform_kegg_gsea(topTabAMLvsCML)
+kk_AMLvsNoL <- perform_kegg_gsea(topTabAMLvsNoL)
+kk_CMLvsNoL <- perform_kegg_gsea(topTabCMLvsNoL)
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+# Generate the dot plots
+dplot_KEGG_AMLvsCML <- dotplot(kk_AMLvsCML, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs CML")
+
+dplot_KEGG_AMLvsNoL <- dotplot(kk_AMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("AML vs NoL")
+
+dplot_KEGG_CMLvsNoL<- dotplot(kk_CMLvsNoL, showCategory=10, split=".sign") +
+  facet_grid(.~.sign) +
+  theme(axis.text.y = element_text(size = 8)) +
+  ggtitle("CML vs NoL")
+
+# Arrange the plots in a grid
+dplot_KEGG_AMLvsCML
+dplot_KEGG_AMLvsNoL
+dplot_KEGG_CMLvsNoL
+
+
+```
+ 
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+ridgeplot(kk_AMLvsCML) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("AMLvsCML")
+ridgeplot(kk_AMLvsNoL) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("AMLvsNoL") 
+ridgeplot(kk_CMLvsNoL) + labs(x = "enrichment distribution")+theme(axis.text.y = element_text(size = 6))+ggtitle("CML vs NoL")
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+k_AMLvsCML <- pairwise_termsim(kk_AMLvsCML) 
+k_AMLvsNoL <- pairwise_termsim(kk_AMLvsNoL)
+k_CMLvsNoL <- pairwise_termsim(kk_CMLvsNoL)
+
+emapplot(k_AMLvsCML,showCategory = 10)+ggtitle("AMLvsCML")
+emapplot(k_AMLvsNoL,showCategory = 10)+ggtitle("AMLvsNoL")
+emapplot(k_CMLvsNoL,showCategory = 10)+ggtitle("CMLvsNoL")
+```

@@ -1,0 +1,725 @@
+---
+title: "PAC 1 ANALISIS MULTIVARIANTE"
+author: "Raul Perez Prats"
+date: "2024-10-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## EJERCICIO 1
+
+### A)
+
+```{r,warning=FALSE,echo=FALSE}
+library(boot)
+data("urine")  
+
+# Mostramos las 6 primeras filas del set de datos
+head(urine)
+```
+
+Observamos el head del dataset. Las filas corresponden a los diferentes muestreos y en las columnas a las variables muestreadas.
+
+```{r, echo=FALSE}
+summary(urine)
+```
+Se trata de un dataset de 79 observaciones y 7 variables todas ellas continuas excepto la variable 'r' que corresponde a la presencia/absencia de oxalato de calcio.
+
+```{r, echo=FALSE}
+# encontramos la posición de los valores faltantes
+print("Posición de valores faltantes ")
+which(is.na(urine))
+print("Número de valores faltantes según variables:")
+colSums(is.na(urine)) 
+# contamos el total de los valores faltantes 
+print("Número total de valores faltantes")
+sum(is.na(urine))
+```
+Encontramos 2 valores faltantes pertenencientes  a las variables 'osmo' y 'cond'
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+library(mice)
+
+imputation_result <- mice(urine, m = 50, method = "pmm", seed = 123,printFlag = FALSE)
+imputed_data <- complete(imputation_result, "long")
+median_values <- apply(imputed_data, 2, function(col) median(col, na.rm = TRUE))
+#rellenamos los valores nulos con las medianas calculadas
+urine_imputed <- urine
+for (col in names(urine_imputed)) {
+    urine_imputed[is.na(urine_imputed[, col]), col] <- median_values[col]
+}
+
+
+```
+
+
+
+```{r, echo=FALSE}
+summary(urine_imputed) #ya no hay valores nulos
+```
+Si hacemos otro print del summary nos muestra que ya no hay valores nulos
+
+### B)
+
+```{r}
+#dividimos en subgrupos
+group_0 <- subset(urine_imputed, r == 0)
+group_1 <- subset(urine_imputed, r == 1)
+
+#Calcular los vectores de medias y matrices de varianzas-covarianzas para cada grupo
+mean_group_0 <- colMeans(group_0, na.rm = TRUE)
+mean_group_1 <- colMeans(group_1, na.rm = TRUE)
+
+cov_group_0 <- cov(group_0, use = "complete.obs")
+cov_group_1 <- cov(group_1, use = "complete.obs")
+
+#Calcular la variación total sumando las trazas de las matrices de varianzas-covarianzas
+total_variation <- sum(diag(cov_group_0)) + sum(diag(cov_group_1))
+
+#Calcular la varianza generalizada
+gen_var_group_0 <- det(cov_group_0)
+gen_var_group_1 <- det(cov_group_1)
+
+#Evaluación visual de la similitud en la variabilidad de ambos grupos
+list(
+  mean_group_0 = mean_group_0,
+  mean_group_1 = mean_group_1,
+  cov_group_0 = cov_group_0,
+  cov_group_1 = cov_group_1,
+  variation_0 = sum(diag(cov_group_0)),
+  variation_1 = sum(diag(cov_group_1)),
+  total_variation = total_variation,
+  gen_var_group_0 = gen_var_group_0,
+  gen_var_group_1 = gen_var_group_1
+)
+
+```
+Si observamos los vectores de las medias de cada grupo podemos ver a simple vista que existen diferencias en las variables 'ph', 'osmo', 'urea' y 'calc'. Estas diferencias son notables a simple vista, aunque hace falta hacer un análisis estadístico más profundo para determinar el impacto y de estas variaciones y si son realmente significativas.
+
+Si sumamos las trazas de la matriz de covarianzas de cada grupo obtenemos la variación para cada grupo. Vemos que en ambos grupos la varianza es similar, aproximadamente de 70000, aunque la varianza del grupo 1 es superior.
+
+La varianza generalizada en ambos grupos es 0. Esto indica que en ambos grupos existen variables que son combinaciones lineales formadas a partir de otras variables. Lo cual, quiere decir que en ambas matrices de covarianza hay variables no relevantes o que contienen información repetida. Por lo tanto las variables de ambos sets de datos estan altamente correlacionadas.
+
+### C)
+
+```{r, warning=FALSE}
+library(pcaPP)
+
+# Calcular las medianas geométricas de cada grupo
+geom_median_group_0 <- l1median(group_0)
+geom_median_group_1 <- l1median(group_1)
+
+# Calcular la distancia euclídea entre los puntos medios
+distance_means <- sqrt(sum((mean_group_0 - mean_group_1)^2))
+
+# Calcular la distancia euclídea entre las medianas geométricas
+distance_geom_medians <- sqrt(sum((geom_median_group_0 - geom_median_group_1)^2))
+
+# Resultados
+list(
+  geom_median_group_0 = geom_median_group_0,
+  geom_median_group_1 = geom_median_group_1,
+  distance_means = distance_means,
+  distance_geom_medians = distance_geom_medians
+)
+
+```
+La distancia euclídea entre las medias aritméticas de los dos grupos es de 134.6023. Este valor indica que los centros de los dos grupos, medidos por sus medias, están relativamente alejados en el espacio multidimensional de las variables. Es un valor considerable, lo que sugiere que las medias de los dos grupos no son similares.
+
+La distancia euclídea entre las medianas geométricas es 177.7463. Esta distancia es mayor que la de las medias (134.6023), lo que indica que las posiciones centrales de los dos grupos, basadas en las medianas geométricas, están aún más separadas que cuando se utilizan las medias aritméticas.
+
+A diferencia de la media aritmética, que es sensible a valores extremos (outliers), la mediana geométrica es más robusta, lo que significa que no se ve tan afectada por puntos atípicos en los datos, ya que  busca el "punto central" de un conjunto de datos en un espacio de múltiples dimensiones de una manera robusta, minimizando las distancias a todos los puntos del conjunto.
+
+Por lo tanto, según la mediana geométrica, los grupos son más distantes en cuanto a su centralidad.
+
+### D)
+
+```{r, warning=FALSE}
+library(MASS)
+
+# Fijamos la semilla
+set.seed(123)
+
+# Estimadores robustos de medias y matrices de covarianzas para cada grupo
+# Para medias, usamos la mediana robusta (estimador robusto de centralidad)
+# Para la covarianza, usamos el estimador robusto de covarianza de M-estimación.
+
+# Función para eliminar columnas con valores constantes
+remove_constant_columns <- function(data) {
+  # Identificar columnas que tienen IQR = 0
+  constant_columns <- sapply(data, function(col) IQR(col, na.rm = TRUE) == 0)
+  # Eliminar las columnas constantes
+  data_cleaned <- data[, !constant_columns]
+  return(data_cleaned)
+}
+
+# Limpiar los grupos eliminando columnas constantes
+group_0_clean <- remove_constant_columns(group_0)
+group_1_clean <- remove_constant_columns(group_1)
+
+# Estimadores robustos de medias y covarianzas para los grupos limpiados
+mean_group_0_robust <- apply(group_0_clean, 2, function(col) median(col, na.rm = TRUE))
+cov_group_0_robust <- cov.rob(group_0_clean)$cov
+
+mean_group_1_robust <- apply(group_1_clean, 2, function(col) median(col, na.rm = TRUE))
+cov_group_1_robust <- cov.rob(group_1_clean)$cov
+
+# Función para calcular la distancia de Mahalanobis utilizando estimadores robustos
+mahalanobis_dist <- function(data, mean_robust, cov_robust) {
+  d <- apply(data, 1, function(x) {
+    diff <- x - mean_robust
+    sqrt(t(diff) %*% solve(cov_robust) %*% diff)
+  })
+  return(d)
+}
+
+# Calcular la distancia de Mahalanobis para cada grupo limpio
+mahalanobis_group_0 <- mahalanobis_dist(group_0_clean, mean_group_0_robust, cov_group_0_robust)
+mahalanobis_group_1 <- mahalanobis_dist(group_1_clean, mean_group_1_robust, cov_group_1_robust)
+
+# Establecer un umbral para detectar los puntos atípicos
+threshold <- 3
+
+# Detectar los puntos atípicos en cada grupo
+outliers_group_0 <- which(mahalanobis_group_0 > threshold)
+outliers_group_1 <- which(mahalanobis_group_1 > threshold)
+
+# Resultados
+list(
+  outliers_group_0 = outliers_group_0,
+  outliers_group_1 = outliers_group_1,
+  mahalanobis_group_0 = mahalanobis_group_0,
+  mahalanobis_group_1 = mahalanobis_group_1
+)
+
+```
+Se han identificado múltiples puntos atípicos en ambos grupos, lo que sugiere que existen observaciones que se alejan significativamente de la distribución general de cada grupo.
+
+Las distancias de Mahalanobis más altas corresponden a puntos más alejados de la media multivariada de cada grupo. Estos puntos son los que se consideran atípicos porque su valor es mucho mayor que el de la mayoría de los puntos en el grupo, según este tipo de medida de dispersión.
+
+El grupo 0 tiene puntos con distancias más variadas (entre 1.8 y 10.8), lo que podría sugerir más variabilidad en términos de la distribución de los datos.
+
+En el grupo 1 las distancias también varían, el grupo tiene algunos valores extremadamente altos (por ejemplo, 15.5 en el índice 71), lo que indica que algunos puntos están mucho más alejados de la media del grupo en comparación con el grupo 0.
+
+### E)
+
+```{r}
+# Número total de observaciones y número de grupos
+n_total <- nrow(urine)  # Total de observaciones
+k <- length(unique(urine$r))  # Número de grupos (en este caso, 2)
+
+# Tamaño de cada grupo
+n_group_0 <- nrow(group_0)
+n_group_1 <- nrow(group_1)
+
+# Matrices de covarianzas para cada grupo
+cov_group_0 <- cov(group_0, use = "complete.obs")
+cov_group_1 <- cov(group_1, use = "complete.obs")
+
+# Cálculo de la matriz de covarianzas combinadas (pooled)
+SP <- ((n_group_0 - 1) * cov_group_0 + (n_group_1 - 1) * cov_group_1) / (n_total - k)
+
+# Matriz de covarianzas total (combinada para todo el conjunto de datos)
+cov_total <- cov(urine, use = "complete.obs")
+
+# Cálculo de la lambda de Wilks
+W <- (n_total - k) * SP
+T <- (n_total - 1) * cov_total
+lambda_wilks <- det(W) / det(T)
+
+# Resultado
+list(
+  pooled_covariance_matrix = SP,
+  wilks_lambda = lambda_wilks
+)
+
+```
+
+La lambda de Wilks es una estadística que toma valores entre 0 y 1.
+Valores cercanos a 0 indican que las medias de los grupos son significativamente diferentes entre sí.
+Valores cercanos a 1 sugieren que no hay diferencias significativas entre los grupos en términos de las variables consideradas.
+
+El valor de la lambda de Wilks cercano a 0 sugiere que hay una diferencia significativa entre las medias de los grupos.
+
+En la matriz de covarianza combinadas las variables osmo y urea, son las que presentan un mayor índice de correlación. Seguido de las variables calc y cond y calc y osmo.
+
+Esto quiere decir que estas variables estan altamente correlacionadas en ambos grupos
+ 
+
+### F)
+
+
+```{r, warning=FALSE}
+data <- scale(urine_imputed)  # Estandariza los datos
+
+# Realizar PCA
+pca_result <- prcomp(data, center = TRUE, scale. = TRUE)
+
+# Criterio de Kaiser: Seleccionar componentes con autovalores > 1
+eigenvalues <- pca_result$sdev^2
+kaiser_criteria <- sum(eigenvalues > 1)
+
+# Varianza explicada: Calcular el porcentaje acumulado de la varianza
+explained_variance <- cumsum(eigenvalues) / sum(eigenvalues)
+var_80 <- which(explained_variance >= 0.80)[1]
+
+# Mostrar la varianza explicada por las tres primeras componentes
+
+cat("Varianza explicada en las 3 primeras variables:", explained_variance[3], "\n")
+
+# Scree Plot: Graficar el Scree plot
+screeplot(pca_result, main = "Scree Plot")
+
+# Criterio de interpretabilidad: Inspeccionar las cargas de cada componente
+loadings <- pca_result$rotation
+
+# Imprimir los resultados
+cat("Número de componentes según el criterio de Kaiser:", kaiser_criteria, "\n")
+cat("Número de componentes para el 80% de la varianza:", var_80, "\n")
+
+```
+Según el criterio de Kaiser, deberíamos seleccionar las primeras dos componentes principales, ya que sus valores propios son superiores a 1.
+
+Según la varianza explicada, para obtener más del 80% de la varianza total, es necesario elegir las tres primeras componentes principales.
+
+De acuerdo con el scree plot, el codo se encuentra después de la primera componente principal, lo que sugiere que las primeras componentes son las que explican la mayor parte de la varianza en los datos.
+
+Finalmente, dado que es posible realizar representaciones gráficas en tres dimensiones, la opción más completa, que explica la mayor parte de la varianza y mantiene una representación espacial comprensible, es seleccionar las tres primeras componentes principales.
+
+
+```{r,warning=FALSE}
+# Cargamos la biblioteca necesaria para los gráficos
+library(ggplot2)
+library(rgl)
+
+# Realizamos el análisis de componentes principales (PCA)
+pca_result <- prcomp(data, scale. = TRUE)
+
+# Extraemos las dos primeras componentes principales
+pca_data_2d <- data.frame(PC1 = pca_result$x[,1], PC2 = pca_result$x[,2], oxalate = factor(urine_imputed$r))
+
+# Gráfico de las dos primeras componentes principales
+ggplot(pca_data_2d, aes(x = PC1, y = PC2, color = oxalate)) +
+  geom_point() +
+  labs(title = "PCA: Dos primeras componentes principales", x = "PC1", y = "PC2") +
+  theme_minimal()
+
+# Extraemos las tres primeras componentes principales
+pca_data_3d <- data.frame(PC1 = pca_result$x[,1], PC2 = pca_result$x[,2], PC3 = pca_result$x[,3], oxalate = factor(urine_imputed$r))
+
+
+# Evaluar la varianza explicada
+explained_variance <- summary(pca_result)$importance[2, ]
+cat("Varianza explicada por las 3 primeras componentes: ", explained_variance[1:3], "\n")
+
+```
+Aunque el 54.972 % de la varianza explicada se encuentra en el componente principal 1, vemos que los dos grupos se diferencian claramente en el eje vertical (componente principal 2), situando el grupo 0 en la parte superior del gráfico y el grupo 1 en la parte inferior sin apenas solapamiento. Por lo tanto, en este componente pricipal se encuentra información clave para poder separar y diferenciar estos dos grupos. 
+
+Cabe decir respecto a la PC1, que aunque los puntos estan bastante solapados a lo largo del eje si que se puede observar una tendencia en la qual los puntos del grupo 0 tienden a situarse más a la izquierda de esta componente principal y los del grupo 1 a la derecha.
+
+
+```{r,warning=FALSE,message=FALSE}
+library(plotly)
+
+# Gráfico 3D con plotly
+pca_data_3d <- data.frame(PC1 = pca_result$x[, 1], PC2 = pca_result$x[, 2], PC3 = pca_result$x[, 3], oxalate = factor(urine_imputed$r))
+
+# Crear gráfico 3D interactivo
+pca_3d_plot <- plot_ly(pca_data_3d, x = ~PC1, y = ~PC2, z = ~PC3, color = ~oxalate, type = 'scatter3d', mode = 'markers') %>%
+  layout(title = "PCA: Tres primeras componentes principales",
+         scene = list(
+           xaxis = list(title = 'PC1'),
+           yaxis = list(title = 'PC2'),
+           zaxis = list(title = 'PC3')
+         ))
+
+# Mostrar el gráfico 3D
+pca_3d_plot
+
+```
+
+En el gráfico del PCA 3D observamos la misma situación en el componente principal 1 y 2 que hemos comentado anteriormente, con la diferencia de que hemos añadido el componente principal 3. No obstante, este componente prinicpal no nos aporta ninguna información relevante a simple vista para poder diferenciar los dos grupos claramente, ya que los puntos estan bastante solapados sobre este eje.
+
+```{r}
+# Loadings de cada componente
+loadings <- pca_result$rotation
+print(loadings)
+
+# Si deseas ver qué variables determinan cada componente, puedes hacerlo por componente:
+# Para la primera componente principal (PC1)
+loadings_PC1 <- loadings[, 1]
+print(loadings_PC1)
+
+# Para la segunda componente principal (PC2)
+loadings_PC2 <- loadings[, 2]
+print(loadings_PC2)
+
+# Si quieres graficar los loadings para visualización más clara:
+library(ggplot2)
+
+# Convertir los loadings a un formato adecuado para ggplot
+loadings_df <- as.data.frame(loadings)
+loadings_df$Variable <- rownames(loadings)
+
+# Graficar los loadings para la primera componente
+ggplot(loadings_df, aes(x = reorder(Variable, PC1), y = PC1)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Loadings de la primera componente principal (PC1)", x = "Variables", y = "Loading")
+
+# Graficar los loadings para la segunda componente
+ggplot(loadings_df, aes(x = reorder(Variable, PC2), y = PC2)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Loadings de la segunda componente principal (PC2)", x = "Variables", y = "Loading")
+```
+
+Al observar los pesos de las variables en la varianza explicada por el componente 2, se puede ver que este componente está fuertemente influenciado por la presencia de oxalato de calcio, la concentración de calcio y la conductividad de la orina. Estas tres variables están estrechamente relacionadas: a medida que aumenta la concentración de calcio, también lo hace la conductividad de la orina. Estos dos factores influyen significativamente en la presencia o ausencia de oxalato de calcio en la orina. Por lo tanto, este componente principal resulta ser un buen discriminante para segmentar correctamente los dos grupos. Estos hallazgos son coherentes con la matriz de covarianzas combinada, en la que la concentración de calcio (calc) y la conductividad de la orina (cond) muestran una fuerte correlación positiva.
+
+## EJERCICIO 2
+
+```{r, echo=FALSE}
+seabirds <- read.csv('seabirds.csv')
+head(seabirds)
+```
+
+Observamos el head del dataset. En las filas se indican las especies y en las columnas las diferentes colonias.
+
+```{r, echo=FALSE}
+summary(seabirds)
+```
+Observamos en el summary que no hay missin values
+
+### A)
+
+```{r}
+
+# Calcular el total de todos los valores
+total_sum <- sum(seabirds[,-1])
+
+# Calcular las frecuencias relativas
+freq_rel <- seabirds
+freq_rel[,-1] <- seabirds[,-1] / total_sum
+
+# Calcular las frecuencias relativas marginales de filas y columnas
+freq_rel_marginals_rows <- rowSums(seabirds[,-1]) / total_sum
+freq_rel_marginals_cols <- colSums(seabirds[,-1]) / total_sum
+
+# Crear la matriz de perfiles
+profile_matrix <- seabirds
+profile_matrix[,-1] <- sweep(seabirds[,-1], 1, rowSums(seabirds[,-1]), FUN = "/")
+
+list(
+  frecuencias_relativas = freq_rel,
+  frecuencias_relativas_marginales_filas = freq_rel_marginals_rows,
+  frecuencias_relativas_marginales_columnas = freq_rel_marginals_cols,
+  matriz_de_perfiles = profile_matrix
+)
+
+```
+
+En la matriz de frecuencias relativas, observamos la frecuencia relativa de cada especie en cada colonia en relación con la presencia total de especies en todas las colonias. Esto nos permite entender la distribución proporcional de las especies a través de las colonias.
+
+En la matriz de perfiles de las filas, analizamos la proporción de cada especie en las 9 colonias. Esto nos proporciona información sobre la abundancia relativa de cada especie en las diferentes colonias. Por ejemplo, podemos observar que el 63.6% de los individuos de la especie Northern fulmar se encuentran en la colonia PLI, lo que refleja su preferencia o mayor concentración en esa colonia en particular.
+
+### B)
+
+```{r}
+# 1. Calcular el total de cada columna (frecuencia marginal de columnas)
+col_totals <- colSums(seabirds[,-1])
+
+# 2. Calcular la matriz de perfiles de columnas
+profile_columns <- sweep(seabirds[,-1], 2, col_totals, FUN = "/")
+
+# 3. Calcular las distancias chi-cuadrado entre columnas
+# La distancia chi-cuadrado entre dos columnas A y B es:
+# distancia(A, B) = sum( ( (p_iA - p_iB)^2 ) / p_i )
+# donde p_iA y p_iB son los perfiles de las filas en las columnas A y B, y p_i es el promedio de perfiles.
+
+# Calcular las frecuencias relativas marginales de filas
+row_totals <- rowSums(seabirds[,-1])
+total_sum <- sum(row_totals)
+row_marginals <- row_totals / total_sum
+
+# Inicializar matriz de distancias
+distances <- matrix(0, ncol = ncol(profile_columns), nrow = ncol(profile_columns))
+colnames(distances) <- colnames(profile_columns)
+rownames(distances) <- colnames(profile_columns)
+
+# Calcular la distancia chi-cuadrado entre cada par de columnas
+for (i in 1:ncol(profile_columns)) {
+  for (j in i:ncol(profile_columns)) {
+    dist <- sum(((profile_columns[,i] - profile_columns[,j])^2) / row_marginals)
+    distances[i, j] <- dist
+    distances[j, i] <- dist
+  }
+}
+
+# 4. Calcular la inercia total
+inertia_total <- sum(distances * col_totals / total_sum) / 2
+
+# Resultados
+list(
+  matriz_de_distancias = distances,
+  inercia_total = inertia_total
+)
+```
+La matriz de distancias sobre los perfiles de las columnas nos permite comparar los perfiles de distribución de especies en cada colonia. Esto proporciona información sobre las diferencias en las distribuciones de especies entre las colonias. Un análisis rápido revela que las colonias con la mayor distancia entre sus perfiles son NS-SI, con un valor de 20.8. Esto indica que estas dos colonias presentan las distribuciones de especies más diferentes entre sí.
+
+Por otro lado, la inercia total mide la cantidad total de variabilidad existente en las distribuciones de especies entre las colonias. Con una inercia total de 20.8, obtenemos un valor moderado, lo que sugiere que hay cierta variabilidad en la distribución de especies entre las diferentes colonias. Sin embargo, para explorar y entender en profundidad las causas de estas diferencias, son necesarios análisis más avanzados, como el Análisis de Correspondencias o el Escalado Multidimensional.
+
+### C)
+
+```{r}
+
+# Realizar el escalado multidimensional en 2 dimensiones
+mds_result <- cmdscale(distances, k = 2, eig = TRUE)
+
+# Extraer las coordenadas principales
+mds_coordinates <- mds_result$points
+
+# Dibujar las coordenadas principales
+plot(
+  mds_coordinates[,1], mds_coordinates[,2],
+  xlab = "Coordenada principal 1",
+  ylab = "Coordenada principal 2",
+  main = "Escalado Multidimensional de las Columnas",
+  pch = 19, col = "blue"
+)
+
+# Agregar etiquetas a los puntos para identificar las columnas
+text(mds_coordinates[,1], mds_coordinates[,2], labels = colnames(distances), pos = 4, cex = 0.8, col = "blue")
+
+```
+
+
+En este escalado multidimensional vemos las distancias entre las colonias representadas en dos coordenadas principales que forman un gráfico 2D. 
+
+Esto nos permite observar visualmente las distáncias entre las colonias y apreciar que colonias tienen una distribución de especies más diferentes. Las colonias que presentan una mayor distancia son SI-NS (20.8), tal y como hemos mencionado en el apartado anterior y concuerda con los resultados de la matriz de distancias de los perfiles de las columnas. SI-PLI también tienen una gran distancia (17.75). 
+
+Podemos observar en el gráfico que las colonias con una distribución de especies más diferente es SI, ya que es la que tiene una mayor distancia respecto al resto de colonias, aunque PLI y NS también estan apartadas de el resto de colonias y por lo tanto demuestran una distribución de espécies peculiar, más diferente a el resto de colonias que están más juntas entre ellas.
+
+### D)
+
+```{r,warning=FALSE}
+
+library(ca)
+
+# Crear la tabla de contingencia de frecuencias (donde las especies están en filas y las colonias en columnas)
+tabla_contingencia <- as.data.frame.matrix(seabirds[, -1])  # Excluye la primera columna (las especies)
+row.names(tabla_contingencia) <- seabirds$Specie  # Asigna las especies como nombres de filas
+
+# Realizar el Análisis de Correspondencias
+ca_result <- ca(tabla_contingencia)
+
+# Ver los resultados del CA
+summary(ca_result)
+
+
+# Graficar la representación simétrica del CA
+plot(ca_result, main = "Representación simétrica del Análisis de Correspondencias", 
+     what = "all")
+
+# Ver las coordenadas de las columnas (incluyendo SI)
+ca_result$colnames
+ca_result$rowcoord  # Coordenadas de las especies (filas)
+
+```
+El gráfico del análisis de correspondencia concuerda bastante con el escalado multidimensional del apartado anterior, ya que SI es la colonia más alejada del resto, y por lo tanto la más diferente. PLI también está bastante lejos del grueso de colonias, aunque NS no gurarda una distancia tan grande como en el gráfico anterior.
+
+Las inercias principales son los valores propios (eigenvalues) calculados durante el análisis de correspondencias. En el contexto del CA, estos valores representan la varianza explicada por cada componente o dimensión (dimensiones que se obtienen al descomponer la tabla de contingencia).
+
+La primera dimension explica 61.7% de la variabilidad total en los datos, lo que significa que la mayor parte de la información relevante del análisis se encuentra en esta dimensión. La segunda dimensión explica el 16.4% de la variabilidad total. Juntas, las dos primeras dimensiones explican aproximadamente el 78% de la variabilidad en los datos.
+
+Una inercia total del 1.57% en un análisis de correspondencias (CA) indica que la variabilidad total explicada por las dimensiones seleccionadas es muy baja. 
+
+Este valor de inercia total sugiere que hay poca explicación de la variabilidad en las relaciones entre especies y colonias. Esto puede deberse a que las especies no están bien diferenciadas entre las colonias o a que hay un gran número de valores igual a 0 en la tabla de contingencia. 
+
+
+```{r, echo=FALSE}
+# Verificar cuántos ceros hay en la tabla de contingencia
+sum(tabla_contingencia == 0)
+```
+Hay 136 valores igual a cero en la tabla de contingencia, esto podría estar afectando considerablemente los resultados del Análisis de Correspondencias (CA), ya que la inercia total puede no ser significativa si las celdas no contienen suficientes datos informativos.
+
+
+```{r}
+ca_result$colcoord["SI", ]
+# Coordenadas de la colonia SI
+coords_SI <- ca_result$colcoord["SI", ]
+
+# Calcular la distancia euclidiana entre las coordenadas de las especies y la colonia SI
+distancias <- apply(ca_result$rowcoord, 1, function(x) sqrt(sum((x - coords_SI)^2)))
+
+# Ordenar las especies por la distancia más corta
+especies_caracteristicas_SI <- sort(distancias)
+
+# Mostrar las especies más cercanas a la colonia SI
+especies_caracteristicas_SI
+
+```
+Las especies que caracterizan a la colonia SI (Skomer Island) son aquellas que tienen una distancia euclidiana más cercana a la colonia, en este caso, de 0.084 unidades. Estas especies incluyen:
+
+Herring gull
+Storm petrel
+Lesser black-backed gull
+Razorbill
+Shag
+Manx shearwater
+Atlantic puffin
+Great black-backed gull
+
+Estas especies están más cercanas en el espacio de coordenadas multivariantes, lo que sugiere que tienen una fuerte asociación con la colonia SI y son representativas de su comunidad ecológica.
+
+### E)
+
+
+```{r}
+# Crear la tabla de contingencia como antes
+colonias <- seabirds[, -1]  # Excluir la columna de especies
+
+# Convertir a formato de tabla de contingencia
+tabla_contingencia_colonias <- as.data.frame.matrix(colonias)
+
+# Transponer la tabla para tener las colonias en filas y columnas
+tabla_contingencia_colonias <- t(tabla_contingencia_colonias)
+
+# Calcular la matriz de distancias de Canberra
+distancia_canberra <- dist(tabla_contingencia_colonias, method = "canberra")
+
+# Mostrar la matriz de distancias
+print(distancia_canberra)
+
+
+
+
+```
+
+
+La fórmula clásica de la distancia de Canberra puede no funcionar en el caso de la tabla 12.7 del libro de Krebs si existen muchas entradas en las cuales tanto pi como qi son cero, lo que lleva a valores indefinidos o NaN. Esto es común en datos con muchos ceros o datos dispersos, como los que podrían estar presentes en tablas de frecuencias o abundancias de especies (que a menudo tienen muchos ceros para especies no observadas en determinadas ubicaciones).
+
+En la tabla los valores reflejan las diferencias relativas en la presencia de especies entre las colonias, con valores más pequeños que sugieren colonias más similares y valores más grandes que indican disimilitudes mayores.
+
+La tabla 12.7 del libro de Krebs presenta una matriz de distancias similar, y se observa que la distancia de Canberra es adecuada para los datos con una gran cantidad de ceros. La fórmula utilizada en R permite manejar correctamente estos ceros, lo que hace que la comparación entre las colonias sea válida y coherente tal y como se muestra en la tabla.
+
+
+```{r,warning=FALSE,message=FALSE}
+library(vegan)
+
+# Paso 1: Calcular la matriz de distancias de Canberra
+dist_canberra <- dist(tabla_contingencia_colonias, method = "canberra")
+
+# Paso 2: Realizar MDS utilizando la distancia de Canberra
+mds_canberra <- metaMDS(dist_canberra)
+
+# Ver los resultados del MDS de Canberra
+mds_canberra$points
+
+# Visualizamos el análisis de MDS de la distancia de Canberra
+#plot(mds_canberra, type = "t", main = "MDS con Distancia de Canberra")
+
+# Paso 3: Calcular la matriz de distancias Ji-cuadrado usando vegdist()
+dist_chi_square <- vegdist(tabla_contingencia_colonias, method = "chisq")
+
+# Realizar el MDS con la distancia Ji-cuadrado
+mds_chi_square <- metaMDS(dist_chi_square)
+
+# Visualizar el MDS de Ji-cuadrado
+#plot(mds_chi_square, type = "t", main = "MDS con Distancia Ji-Cuadrado")
+
+# Paso 4: Usar la función procrustes() para comparar los dos mapas de MDS
+procrustes_result <- procrustes(mds_canberra, mds_chi_square)
+
+# Mostrar los resultados de Procrustes
+procrustes_result
+
+# Paso 5: Graficar ambos MDS en un mismo gráfico para comparación
+par(mfrow = c(1, 2))  # Para colocar los gráficos uno al lado del otro
+plot(mds_canberra, type = "t", main = "MDS con Distancia de Canberra")
+plot(mds_chi_square, type = "t", main = "MDS con Distancia Ji-Cuadrado")
+
+
+```
+
+El gráfico comparativo del MDS de la distancia de Canberra con la distancia Ji-cuadrado nos permite afirmar que la distancia de Canberra resulta ser más adecuada para representar este tipo de datos porque esta distancia es particularmente sensible a pequeñas variaciones, lo que permite una representación más clara de las relaciones sutiles entre las colonias. Además, la normalización de las distancias en la fórmula de Canberra ayuda a evitar que las diferencias absolutas en las frecuencias de especies dominantes influyan demasiado en los resultados, lo que permite que las colonias más pequeñas o con menos especies también se representen de manera adecuada.
+
+Por otro lado, la distancia Ji-cuadrado tiende a dar mayor peso a las diferencias en frecuencias absolutas y no es tan sensible a las pequeñas diferencias relativas. Esto puede llevar a una dispersión excesiva en el gráfico de MDS, donde las colonias con pequeñas diferencias entre ellas se agrupan o "apelotonan", y no reflejan bien las verdaderas relaciones ecológicas entre las colonias. Es decir, la distancia Ji-cuadrado tiende a exagerar las diferencias entre colonias que tienen frecuencias de especies muy dispares, mientras que con la distancia de Canberra se conservan mejor las similitudes entre colonias con diferencias menos marcadas.
+
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r,eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, eval = FALSE,message=FALSE, warning=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
+
+```{r, echo=FALSE}
+
+```
