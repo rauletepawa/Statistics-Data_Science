@@ -1,0 +1,1369 @@
+---
+title: "PAC 2"
+author: "Raul Perez Prats"
+date: "2025-01-15"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Ejercicio 1
+
+### A)
+
+```{r,echo=FALSE,warning=FALSE}
+# Especificamos path
+file_path <- "MERCBASS.txt"
+
+# Cargamos los datos
+df <- read.delim(file_path, header = TRUE, sep = "\t")
+
+# Visualizamos
+head(df)
+```
+
+### B)
+
+
+```{r, echo=FALSE}
+# Calcular el número total de lagos
+total_lagos <- nrow(df)
+
+# Contar los lagos con Avg Mercury > 0.5
+lagos_no_saludables <- sum(df$Avg.Mercury > 0.5)
+
+# Calcular el porcentaje
+porcentaje_no_saludables <- (lagos_no_saludables / total_lagos) * 100
+
+# Mostrar resultados
+cat("Porcentaje de lagos con niveles no saludables de mercurio:", porcentaje_no_saludables, "%\n")
+
+```
+Para saber si este este estimador que indica que el 41,51% de los lagos de florida contienen unos niveles de mercurio superiores a los límites establecidos debemos tener en cuenta que se muestrearon 53 lagos en el estudio sobre un total de 7800 en florida acorde a los [autores](https://bcs.whfreeman.com/WebPub/Statistics/shared_resources/EESEE/MercuryinFloridasBass/index.html). Esto implica que tan solo se han usado un 0,68% de los lagos de florida para realizar el estudio. Además de la cantidad de lagos muestreados, es importante conocer la distribución de estos lagos y ésta debería de ser lo más equitativa posible a lo largo del territorio de Florida para maximizar la representación de la muestra. En la figura 1 podemos ver que el mayor esfuerzo de muestreo se concentra en la zona central de Florida, mientras las zonas norte, este y sur del estado a penas recojen información de ningún lago. 
+
+Los autores mencionan que han usado su criterio para escojer los 53 lagos más representativos de estos 7800 lagos totales. Aún así teniendo en cuenta que tan solo se ha muestreado el 0,68% de los lagos creo que estos 53 lagos no son totalmente representativos del total, ya que el criterio de los investigadores puede pasar por alto datos relevantes en los 7747 lagos restantes. Además la distribución del muestreo de estos lagos no es equitativa, quedando así regiones considerablememte grandes completamente sin muestras.
+
+Por todos estos motivos creo que la estimación de los lagos con niveles no saludables de mercurio no es representativa para todos los lagos del estado de Florida.
+
+![Figura 1: Imagen de dónde se realizaron los muestreos en florida](https://bcs.whfreeman.com/WebPub/Statistics/shared_resources/EESEE/MercuryinFloridasBass/images/bassmap.gif){width='500px'}
+
+### C)
+
+
+```{r, echo=FALSE}
+# Seleccionar las variables de interés
+variables_interes <- df[, c("Alkalinity", "pH", "Calcium", "Chlorophyll", "Avg.Mercury")]
+
+# Crear la matriz de diagramas de dispersión
+pairs(variables_interes, main = "Relación entre variables químicas y concentración de mercurio",
+      pch = 19, col = "blue")
+
+```
+
+En todos los diagramas 2 a 2 de las variables vs Avg.Mercury observamos que la relación no es lineal a simple vista, incluso, algunos gráficos como Alkalinity vs Avg.Mercury, Calcium vs Avg.Mercury y Chlorophyll vs Avg.Mercury sugieren un modelo que a simple vista encaja mejor con una exponencial negativa. Esto sucede porque cuanto mayores son las concentraciones de calcio, clorofila y alcalinidad, la concentración de mercurio promedio disminuye.
+
+
+
+```{r, echo=FALSE}
+plot(df$Alkalinity, df$Avg.Mercury, main="Relación entre Alkalinity y Avg Mercury", 
+     xlab="Alkalinity (mg/l)", ylab="Avg Mercury (ppm)", pch=19)
+abline(lm(Avg.Mercury ~ Alkalinity, data=df), col="red")  # Línea de regresión
+
+```
+
+Aquí podemos observar el ajuste de una recta a la relación Alcalinidad vs Mercurio promedio. Tal y como se ha mencionado antes, parece que los modelos exponenciales negativos tendrían un mejor ajuste en este tipo de datos.
+
+### D)
+
+```{r, echo=FALSE,results='hide', warning=FALSE}
+library(rcompanion)
+# Seleccionar las variables químicas y la concentración de mercurio
+variables <- df[, c("Alkalinity", "pH", "Calcium", "Chlorophyll", "Avg.Mercury")]
+
+# Transformar cada variable con Tukey
+variables_trans <- as.data.frame(lapply(variables, function(x) {
+  if (is.numeric(x)) {
+    transformTukey(x, plotit = FALSE)  # Aplicar la transformación sin graficar
+  } else {
+    x  # Si no es numérica, mantenerla igual
+  }
+}))
+
+# Renombrar columnas para identificarlas como transformadas
+colnames(variables_trans) <- paste0(colnames(variables), "_trans")
+
+
+```
+
+
+```{r, echo=FALSE}
+
+# Seleccionar las variables de interés
+variables_interes_trans <- variables_trans[, c("Alkalinity_trans", "pH_trans", "Calcium_trans", "Chlorophyll_trans", "Avg.Mercury_trans")]
+
+# Crear la matriz de diagramas de dispersión
+pairs(variables_interes_trans, main = "Relación entre variables químicas y concentración de mercurio",
+      pch = 19, col = "blue")
+```
+
+Tras aplicar la transformación de la función transformTukey() podemos afirmar que a simple vista, todos las variables han mejorado considerablemente su relación lineal negativa con la variable objetivo Avg.Mercury. Ahora los gráficos ya no siguen un modelo de una exponencial negativa como se podía intuir en los gráficos anteriores. Aunque, tras la transformación se sigue manteniendo la relación inversamente proporcional entre las variables y el mercurio promedio, lo que ahora se aprecia una relación más lineal.
+
+### E)
+
+```{r,results='hide', echo=TRUE}
+library(rcompanion)
+
+# Transformar las variables químicas (X1, X2, X3, X4) y las de mercurio (Y1, Y2, Y3)
+variables_transformadas <- data.frame(
+  X1 = transformTukey(df$Alkalinity, plotit = FALSE),
+  X2 = transformTukey(df$pH, plotit = FALSE),
+  X3 = transformTukey(df$Calcium, plotit = FALSE),
+  X4 = transformTukey(df$Chlorophyll, plotit = FALSE),
+  Y1 = transformTukey(df$Min, plotit = FALSE),
+  Y2 = transformTukey(df$Avg.Mercury, plotit = FALSE),
+  Y3 = transformTukey(df$Max, plotit = FALSE)
+)
+```
+
+
+
+```{r, echo=TRUE}
+# Calcular la matriz de centrado H
+n <- nrow(variables_transformadas)  # Número de observaciones
+H <- diag(n) - (1 / n) * matrix(1, n, n)  # Matriz de centrado
+
+# Centrar las variables manualmente (restar la media de cada columna)
+variables_centradas <- scale(variables_transformadas, center = TRUE, scale = FALSE)
+
+# Calcular la matriz de varianzas-covarianzas manualmente
+var_cov_manual <- (1 / (n - 1)) * t(variables_centradas) %*% variables_centradas
+
+# Comparar con la función cov()
+var_cov_func <- cov(variables_transformadas)
+
+# Verificar si los resultados coinciden
+all.equal(var_cov_manual, var_cov_func)
+
+
+```
+
+La matriz de covarianzas calculada da el mismo resultado que el calculo con la funcion cov()
+
+### F)
+
+```{r, echo=FALSE}
+# Cálculo de las medias
+media_X <- colMeans(variables_transformadas[, 1:4])  # Medias de X1, X2, X3, X4
+media_Y <- colMeans(variables_transformadas[, 5:7])  # Medias de Y1, Y2, Y3
+
+# Cálculo de las varianzas
+var_X <- apply(variables_transformadas[, 1:4], 2, var)  # Varianzas de X1, X2, X3, X4
+var_Y <- apply(variables_transformadas[, 5:7], 2, var)  # Varianzas de Y1, Y2, Y3
+
+# Cálculo de las covarianzas
+cov_X <- cov(variables_transformadas[, 1:4])  # Covarianzas entre X1, X2, X3, X4
+cov_Y <- cov(variables_transformadas[, 5:7])  # Covarianzas entre Y1, Y2, Y3
+cov_XY <- cov(variables_transformadas[, 1:4], variables_transformadas[, 5:7])  # Covarianzas entre X y Y
+
+# Cálculo de la media de U y V
+# U = 0.4*X1 + 0.2*X2 + 0.2*X3 + 0.2*X4
+# V = (Y1 + Y2 + Y3) / 3
+mu_U <- 0.4 * media_X[1] + 0.2 * media_X[2] + 0.2 * media_X[3] + 0.2 * media_X[4]
+mu_V <- (media_Y[1] + media_Y[2] + media_Y[3]) / 3
+
+# Cálculo de la varianza de U
+var_U <- 0.4^2 * var_X[1] + 0.2^2 * var_X[2] + 0.2^2 * var_X[3] + 0.2^2 * var_X[4] +
+  2 * (0.4 * 0.2 * cov_X[1, 2] + 0.4 * 0.2 * cov_X[1, 3] + 0.4 * 0.2 * cov_X[1, 4] +
+  0.2 * 0.2 * cov_X[2, 3] + 0.2 * 0.2 * cov_X[2, 4] + 0.2 * 0.2 * cov_X[3, 4])
+
+# Cálculo de la varianza de V
+var_V <- (1/9) * (var_Y[1] + var_Y[2] + var_Y[3] + 2 * (cov_Y[1, 2] + cov_Y[1, 3] + cov_Y[2, 3]))
+
+# Cálculo de la covarianza entre U y V
+cov_UV <- (1/3) * (0.4 * cov_XY[1, 1] + 0.4 * cov_XY[1, 2] + 0.4 * cov_XY[1, 3] +
+                  0.2 * cov_XY[2, 1] + 0.2 * cov_XY[2, 2] + 0.2 * cov_XY[2, 3] +
+                  0.2 * cov_XY[3, 1] + 0.2 * cov_XY[3, 2] + 0.2 * cov_XY[3, 3] +
+                  0.2 * cov_XY[4, 1] + 0.2 * cov_XY[4, 2] + 0.2 * cov_XY[4, 3])
+
+# Cálculo de la correlación entre U y V
+corr_UV <- cov_UV / sqrt(var_U * var_V)
+
+# Resultados
+cat("Media de U: ", mu_U, "\n")
+cat("Media de V: ", mu_V, "\n")
+cat("Varianza de U: ", var_U, "\n")
+cat("Varianza de V: ", var_V, "\n")
+cat("Correlación entre U y V: ", corr_UV, "\n")
+
+```
+
+Como hemos visto en apartados anteriores la alta correlación negativa de -0.64 concuerda con los gráficos anteriores, donde se observa que con el aumento de la Alcalinidad, el pH, el calcio y la clorofila la concentración de mercurio tiende a disminuir. 
+
+Este hecho no implica una causalidad directa. Hacen falta análisis más profundos para determinar que los niveles altos de estas variables son la causa de disminución de concentración de mercurio.
+
+### G)
+
+```{r, echo=FALSE}
+#Quitamos ph neutro de los datasets
+
+indices_ph_7 <- which(df$pH == 7)
+df_sin_ph_7 <- df[-indices_ph_7, ]
+variables_transformadas_sin_ph_7 <- variables_transformadas[-indices_ph_7, ]
+
+
+# Clasificar los valores de pH según la condición
+variables_transformadas_sin_ph_7$pH_grupo <- ifelse(df_sin_ph_7$pH < 7, "Ácido", #detectamos ph en el df_sin_ph_7 y aplicamos cambios
+                      ifelse(df_sin_ph_7$pH > 7, "Alcalino", NA))                 #en variables transformadas
+
+
+# usar pivot_longer para transformar las columnas Y1, Y2, Y3 a un formato largo
+library(tidyr)
+
+# Transformamos el dataframe a formato largo
+data_larga <- variables_transformadas_sin_ph_7 %>%
+  pivot_longer(cols = c("Y1", "Y2", "Y3"), 
+               names_to = "variable", 
+               values_to = "value")
+
+# Verificamos el resultado
+#head(data_larga)
+
+# Graficar el boxplot múltiple comparando los valores de Y1, Y2, Y3 entre los grupos Ácido y Alcalino
+boxplot(value ~ pH_grupo * variable, 
+        data = data_larga,
+        main = "Comparación de Y1, Y2, Y3 entre lagos ácidos y alcalinos",
+        xlab = "Grupo de pH y Variable", 
+        ylab = "Valor de las Variables",
+        col = c("lightblue", "lightgreen"), 
+        las = 1)
+
+
+```
+
+Como hemos mencionado anteriormente, los niveles altos de pH, es decir, los lagos alcalinos muestran menores concentraciones de mercurio. Este suceso también se puede observar en el boxplot comparativo en el que los lagos alcalinos muestran una distribución de valores más bajos tanto para Y1, Y2 y Y3. Esto se puede apreciar de forma muy clara y evidente en el gráfico donde los valores de dentro de las cajas (el grueso de las distribuciones) nunca llega a solaparse en ninguna de las 3 variables. Por lo tanto, en lagos alcalinos, las concentraciones mínimas, medias y máximas de mercurio son más bajas que en los lagos de pH ácido.
+
+### H)
+
+Gráficos de Normalidad Univariante
+
+```{r, echo=FALSE, warning=FALSE}
+library(MVN)
+library(ggplot2)
+library(ggpubr)
+
+# Lista de variables a analizar
+variables <- c("Y1", "Y2", "Y3")
+
+# Crear QQ-Plots para cada variable en los grupos Ácido y Alcalino
+plots <- list()
+for (var in variables) {
+  plot_acido <- ggqqplot(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Ácido"], 
+                         main = paste("QQ-Plot", var, "(Ácidos)"))
+  plot_alcalino <- ggqqplot(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Alcalino"], 
+                            main = paste("QQ-Plot", var, "(Alcalinos)"))
+  plots <- c(plots, list(plot_acido, plot_alcalino))
+}
+
+# Mostrar los QQ-Plots en una cuadrícula
+ggarrange(plotlist = plots, ncol = 2, nrow = length(variables))
+
+```
+
+La comparación de los qqplots de los grupos ácidos vs alcalinos sugiere que los datos en el grupo Ácidos tiene un mejor ajuste a una distribución normal, ya que en el grupo Alcalinos hay un mayor número de muestras en las colas que se separan de la linea. Este desajuste en el grupo Alcalino se podría corregir mediante una eliminación de los outliers, ya que son muy pocos los puntos que en las colas no se ajustan a la línea del gráfico qqplot.
+
+
+Test de Normalidad Univariante
+
+```{r, echo=FALSE}
+# Lista de variables a analizar
+variables <- c("Y1", "Y2", "Y3")  # Agrega aquí todas las variables relevantes
+
+# Crear una lista para almacenar los resultados
+resultados_shapiro <- list()
+
+# Test de Shapiro-Wilk para cada variable en cada grupo
+for (var in variables) {
+  resultado_acido <- shapiro.test(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Ácido"])
+  resultado_alcalino <- shapiro.test(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Alcalino"])
+  
+  # Guardar los resultados en una lista
+  resultados_shapiro[[paste(var, "Ácido", sep = "_")]] <- resultado_acido
+  resultados_shapiro[[paste(var, "Alcalino", sep = "_")]] <- resultado_alcalino
+}
+
+# Mostrar los resultados
+for (nombre in names(resultados_shapiro)) {
+  cat("\nResultados para", nombre, ":\n")
+  print(resultados_shapiro[[nombre]])
+}
+
+
+```
+
+Las observaciones de los qqplots concuerdan con el test de Shapiro-Wilk, ya que todos los pvalores del grupo Ácido son mayores a 0.05, por lo tanto no se rechaza la hipótesis nula en este grupo y las muestras siguen una distribución normal para las 3 variables (Concentración mínima, Promedio y máxima de mercurio). Por otro lado, en el grupo alcalino, Y1 (concentración mínima) no se ajusta a una distribución normal debido a que pvalue = 0.008 < 0.05. Mientras que Y2 e Y3 si que se ajustan a una distribución normal. Por lo tanto, teniendo en cuenta las 3 variables, el grupo Ácido presenta un mejor ajuste a una distribución normal en las 3 variables.
+
+Asimetría y Kurtosis Multivariante
+
+
+```{r, echo=FALSE}
+# Filtrar los datos para los grupos "Ácido" y "Alcalino"
+data_acido <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")]
+data_alcalino <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")]
+
+# Realizar el análisis de normalidad multivariante para el grupo Ácido
+resultados_mvn_acido <- mvn(data = data_acido)
+resultados_mvn_acido
+
+# Realizar el análisis de normalidad multivariante para el grupo Alcalino
+resultados_mvn_alcalino <- mvn(data = data_alcalino)
+resultados_mvn_alcalino
+
+```
+
+Los test Anderson-Darling para el análisis de la normalidad multivariante tienen un resultado muy parecido al que hemos visto en el análisis de la normalidad univariante donde en el grupo Ácido las 3 variables se ajustan correctamente a una distribución normal mientras que en el grupo Alcalino la variable Y1, al igual que en el análisis univariante, no se ajusta correctamente a una distribución normal.
+
+Calcular las distancias de Mahalanobis
+
+
+```{r, echo=FALSE}
+# Calcular la matriz de covarianzas y medias de las variables
+mean_vals <- colMeans(variables_transformadas_sin_ph_7[, c("Y1", "Y2", "Y3")])
+cov_matrix <- cov(variables_transformadas_sin_ph_7[, c("Y1", "Y2", "Y3")])
+
+# Calcular las distancias de Mahalanobis para los grupos Ácidos y Alcalinos
+mahal_ácidos <- mahalanobis(
+  variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")],
+  center = mean_vals,
+  cov = cov_matrix
+)
+
+mahal_alcalinos <- mahalanobis(
+  variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")],
+  center = mean_vals,
+  cov = cov_matrix
+)
+
+# Graficar los QQ-plots de las distancias de Mahalanobis
+# Ácidos
+qqplot(
+  qchisq(ppoints(length(mahal_ácidos)), df = 3), mahal_ácidos,
+  main = "QQ-Plot Mahalanobis Distances (Ácidos)",
+  xlab = "Teórica Chi-cuadrado",
+  ylab = "Distancias Mahalanobis"
+)
+abline(0, 1, col = "red", lwd = 2)  # Agregar la línea diagonal
+
+# Alcalinos
+qqplot(
+  qchisq(ppoints(length(mahal_alcalinos)), df = 3), mahal_alcalinos,
+  main = "QQ-Plot Mahalanobis Distances (Alcalinos)",
+  xlab = "Teórica Chi-cuadrado",
+  ylab = "Distancias Mahalanobis"
+)
+abline(0, 1, col = "red", lwd = 2)  # Agregar la línea diagonal
+
+
+```
+
+La comparación de los gráficos QQ-plot de las distancias de Mahalanobis respalda lo observado previamente. En el grupo ácido, las distancias de Mahalanobis se ajustan adecuadamente a la línea teórica, aunque se observa un único punto en el extremo superior derecho que se aleja significativamente del ajuste. En contraste, en el grupo alcalino, los puntos muestran una mayor dispersión en relación con la línea, lo que indica un ajuste menos preciso a una distribución normal multivariada. Esto sugiere que los datos en el grupo alcalino podrían desviarse más de la normalidad multivariante en comparación con el grupo ácido.
+
+### I)
+
+```{r, echo=FALSE, warning=FALSE,message=FALSE}
+
+library(heplots)
+
+# Nos aseguramos de que 'pH_grupo' sea un factor
+variables_transformadas_sin_ph_7$pH_grupo <- as.factor(variables_transformadas_sin_ph_7$pH_grupo)
+
+# test M de Box
+test_m_box <- boxM(cbind(Y1, Y2, Y3) ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+test_m_box
+
+
+```
+
+```{r, echo=FALSE, warning=FALSE,message=FALSE}
+
+#El test de levene multivariado da un error persistente que no me permite avanzar, para realizar las comparaciones haré el test de levene univariado para las 3 variables
+
+library(car)
+
+# Test de Levene multivariado
+#levene_test <- leveneTest(cbind(Y1, Y2, Y3) ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+#print(levene_test)
+
+
+
+# Test de Levene para cada variable por separado
+levene_test_Y1 <- leveneTest(Y1 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+levene_test_Y2 <- leveneTest(Y2 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+levene_test_Y3 <- leveneTest(Y3 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+
+# Imprimir resultados
+print(levene_test_Y1)
+print(levene_test_Y2)
+print(levene_test_Y3)
+
+
+```
+El Box's M-test compara la homogeneidad de matrices de covarianzas multivariantes entre los grupos. En este caso, el test sugiere que no hay diferencias significativas (0.1341>0.05) en las matrices de covarianzas entre los grupos.
+
+Levene's Test evalúa la homogeneidad de las varianzas univariantes de cada variable individualmente. Los resultados de Levene sugieren que no hay diferencias significativas (todos los pvalues > 0.05) en las varianzas entre los grupos para cada variable individual.
+
+### J)
+
+```{r, echo=FALSE,message=FALSE, warning=FALSE}
+library(ICSNP)
+library(Hotelling)
+
+# Filtrar los datos para los grupos Ácido y Alcalino
+grupo_acido <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")]
+grupo_alcalino <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")]
+
+# Realizar el test de Hotelling T²
+hotelling_test <- hotelling.test(grupo_acido, grupo_alcalino)
+print(hotelling_test)
+
+```
+
+Dado que el valor p es considerablemente inferior a 0.05 (8.105e-05<0.05), rechazamos la hipótesis nula, que establece que las medias de los dos grupos son iguales. Por lo tanto existe una diferencia significativa entre las medias de los grupos Ácido y Alcalino en las variables Y1, Y2 y Y3.
+
+Este resultado concuerda con las observaciones mencionadas en los graficos de los apartados C y D donde se observa que cuanto mayor es el pH, menores son las concentraciones de mercurio, por lo tanto las diferencias significativas entre las medias de Y1, Y2 e Y3 de ambos grupos confirman las observaciones anteriores.
+
+
+```{r, echo=TRUE,warning=FALSE}
+library(perm)
+
+# Crear una función de permutación para la comparación multivariante
+perm_test_multivariante <- function(grupo1, grupo2, num_permutaciones = 100000) {
+  # Calcular la diferencia de medias observada utilizando la norma de la diferencia de medias
+  diff_observada <- sqrt(sum((colMeans(grupo1) - colMeans(grupo2))^2))
+  
+  # Realizar las permutaciones
+  diferencias_permutadas <- replicate(num_permutaciones, {
+    # Permutar las filas de los dos grupos y recalcular la diferencia de medias
+    datos_permutados <- rbind(grupo1, grupo2)
+    indices_permutados <- sample(1:nrow(datos_permutados))
+    grupo1_permutado <- datos_permutados[indices_permutados[1:nrow(grupo1)], ]
+    grupo2_permutado <- datos_permutados[indices_permutados[(nrow(grupo1)+1):nrow(datos_permutados)], ]
+    sqrt(sum((colMeans(grupo1_permutado) - colMeans(grupo2_permutado))^2))
+  })
+  
+  # Calcular el valor p
+  p_value <- mean(diferencias_permutadas >= diff_observada)
+  return(p_value)
+}
+
+# Realizar el test de permutaciones
+p_value_permutaciones <- perm_test_multivariante(grupo_acido, grupo_alcalino)
+print(p_value_permutaciones)
+
+```
+El test de permutanciones da un pvalor de 1e-05 para 100000 permutaciones, este es un pvalor muy pequeño (1e-05<0.05) por lo tanto indica una diferencia muy significativa entre los grupos y nos permite rechazar la hipótesis nula de que los grupos son iguales en términos de las variables analizadas. Esto vuelve a concordar con lo mencionado en el apartado anterior y en los apartados C y D, donde se observan diferencias significativas en las concentraciones de mercurio entre los dos grupos.
+
+Esto puede deberse a que en ambientes ácidos el mercurio tiende a estar más disuelto en su forma iónica (Hg²⁺) o en compuestos como el mercurio dimetílico (MeHg), que es altamente tóxico. Esto se debe a que el mercurio se disocia más fácilmente en agua ácida, lo que aumenta su disponibilidad en el medio acuático. En cambio, en ambientes más alcalinos (con pH más alto), el mercurio tiende a precipitarse en formas menos solubles, como Hg(OH)₂, lo que reduce su concentración disponible en el agua.
+
+## Ejercicio 2
+
+### A)
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+data <- read.csv("wood.csv", sep=",")
+selected_data <- data[c("carcar", "corflo", "faggra", "ileopa", "liqsty", 
+                        "maggra", "nyssyl", "ostvir", "oxyarb", "pingla", 
+                        "quenig", "quemic", "symtin")]
+
+# Ver las primeras filas del dataset seleccionado
+head(selected_data)
+```
+```{r, echo=TRUE,warning=FALSE,message=FALSE}
+
+library(vegan)
+
+
+muestra1 <- selected_data[1, ]  # Primera muestra
+muestra2 <- selected_data[2, ]  # Segunda muestra
+
+# Bray-Curtis
+Cij <- sum(pmin(muestra1, muestra2))
+
+Si <- sum(muestra1)
+Sj <- sum(muestra2)
+
+# Aplicamos la fórmula de Bray-Curtis
+BC1 <- 1 - (2 * Cij) / (Si + Sj)
+
+#vegdist() manual
+numerador <- sum(abs(muestra1 - muestra2))
+
+denominador <- sum(muestra1 + muestra2)
+
+# 3. Aplicamos la fórmula de Bray-Curtis
+BC2 <- numerador / denominador
+
+
+
+# Calcular la matriz de disimilitudes usando Bray-Curtis
+dissimilarity_matrix <- vegdist(selected_data, method = "bray")
+
+# Mostrar la matriz de disimilitudes
+#print(dissimilarity_matrix)
+
+# Extraer la disimilitud entre las dos primeras muestras
+bray_vegdist_first_two <- as.matrix(dissimilarity_matrix)[1, 2]
+
+
+cat('Bray-Curtis tiene un valor de:',BC1,'\n')
+cat('Bray-Curtis Vegdist manual tiene un valor de:',BC2,'\n')
+cat("Disimilitud entre las dos primeras muestras (vegdist):", bray_vegdist_first_two, "\n")
+
+```
+Observamos que la disimilaridad calculada Bray-Curtis normal, el Bray-Curtis calculado manualmente usando la formula de vegdist y con la función vegdist() tienen el mismo valor
+
+### B)
+
+
+```{r, echo=TRUE,warning=FALSE,message=FALSE}
+library(vegan)
+
+# Calcular la matriz de disimilitudes
+dissimilarity_matrix <- as.matrix(vegdist(selected_data, method = "bray"))
+
+# Comprobar la desigualdad triangular para todos los tripletes
+viola_triang <- FALSE
+total <-0
+for (i in 1:nrow(selected_data)) {
+  for (j in 1:nrow(selected_data)) {
+    for (k in 1:nrow(selected_data)) {
+      if (dissimilarity_matrix[i, j] > dissimilarity_matrix[i, k] + dissimilarity_matrix[k, j]) {
+        total <- total + 1
+        cat("Violación encontrada entre las muestras:", i, j, k, "\n")
+        viola_triang <- TRUE
+      }
+    }
+  }
+}
+
+if (!viola_triang) {
+  cat("No se encontraron violaciones de la desigualdad triangular en los datos proporcionados.\n")
+}
+cat('Total de violaciones de la desigualdad triangular:',total)
+```
+
+```{r, echo=TRUE,warning=FALSE,message=FALSE}
+library(vegan)
+
+# Calcular la matriz de disimilitudes de Bray-Curtis
+dissimilarity_matrix <- as.matrix(vegdist(selected_data, method = "bray"))
+
+# Transformar la matriz calculando la raíz cuadrada de los valores
+sqrt_dissimilarity_matrix <- sqrt(dissimilarity_matrix)
+
+# Comprobar la desigualdad triangular para todos los tripletes con la matriz transformada
+violations <- 0  # Inicializar el contador de violaciones
+
+for (i in 1:nrow(selected_data)) {
+  for (j in 1:nrow(selected_data)) {
+    for (k in 1:nrow(selected_data)) {
+      # Verificar si se cumple la desigualdad triangular
+      if (sqrt_dissimilarity_matrix[i, j] > sqrt_dissimilarity_matrix[i, k] + sqrt_dissimilarity_matrix[k, j]) {
+        violations <- violations + 1
+        cat("Violación encontrada entre las muestras (raíz cuadrada):", i, j, k, "\n")
+      }
+    }
+  }
+}
+
+# Mostrar el número total de violaciones
+if (violations == 0) {
+  cat("No se encontraron violaciones de la desigualdad triangular con la raíz cuadrada.\n")
+} else {
+  cat("Número total de violaciones con la raíz cuadrada:", violations, "\n")
+}
+
+```
+### C)
+
+```{r, echo=TRUE,warning=FALSE,message=FALSE}
+# Cargar los paquetes necesarios
+library(vegan)
+library(ape)
+
+# Calcular la matriz de disimilitudes de Bray-Curtis
+dissimilarity_matrix <- as.matrix(vegdist(selected_data, method = "bray"))
+
+# Calcular la raíz cuadrada de la matriz de disimilitudes
+sqrt_dissimilarity_matrix <- sqrt(dissimilarity_matrix)
+
+# Verificar si es una distancia euclídea mediante PCoA
+pcoa_result <- pcoa(as.dist(sqrt_dissimilarity_matrix))
+
+# Mostrar los valores propios (eigenvalues)
+cat("Valores propios del PCoA:\n")
+print(pcoa_result$values$Eigenvalues)
+# Verificar si todos los valores propios son no negativos
+if (all(pcoa_result$values$Eigenvalues >= -1e-10)) {
+  cat("La raíz cuadrada de la disimilitud de Bray-Curtis es una distancia euclídea.\n")
+} else {
+  cat("La raíz cuadrada de la disimilitud de Bray-Curtis NO es una distancia euclídea.\n")
+}
+
+```
+Para comprobar si la raíz cuadrada de la disimilitud de Bray-Curtis es una distancia euclídea, utilizamos el análisis de coordenadas principales (PCoA), que descompone una matriz de distancias en valores propios y coordenadas en un espacio euclidiano. Si todos los valores propios obtenidos son no negativos (o cercanos a cero considerando errores numéricos), la matriz transformada es euclidiana.
+
+Este análisis se realiza calculando la matriz de disimilitudes de Bray-Curtis, aplicando la raíz cuadrada a sus valores y verificando los valores propios mediante la función pcoa() del paquete ape en R. En general, la raíz cuadrada de la disimilitud de Bray-Curtis cumple esta propiedad.
+
+
+### D)
+
+```{r, warining=FALSE,echo=FALSE,message=FALSE}
+
+library(factoextra)
+
+# Calcular el estadístico de Hopkins
+clust_tendency <- get_clust_tendency(selected_data, n = nrow(selected_data) - 1, graph = TRUE)
+
+# Mostrar el valor del estadístico de Hopkins
+cat("Estadístico de Hopkins:", clust_tendency$hopkins_stat, "\n")
+
+library(factoextra)
+set.seed(123)  # Para reproducibilidad
+
+# Normalizar los datos 
+scaled_data <- scale(selected_data)
+
+# Aplicar k-means con 3 clusters (puedes ajustar este número)
+km_res <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Visualizar los clusters
+fviz_cluster(list(data = scaled_data, cluster = km_res$cluster),
+             ellipse.type = "norm",  # Tipo de elipse para los grupos
+             geom = "point",         # Visualizar puntos
+             stand = FALSE,          # No volver a estandarizar
+             palette = "jco",        # Paleta de colores
+             ggtheme = theme_classic())  # Tema gráfico clásico
+
+
+```
+El estadístico de Hopkins (0.679584) es relativamente alto (cercano a 0.70) y por lo tanto indica que los grupos estarán bastante bien formados. Tal y como vemos en el gráfico se pueden diferenciar claramente 3 clústeres en los que quedan agrupados y bien diferenciados todos los datos.
+
+### E)
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+# Cargar los paquetes necesarios
+library(vegan)
+library(cluster)
+
+# Calcular la matriz de disimilitud de Bray-Curtis
+dissimilarity_matrix <- vegdist(selected_data, method = "bray")
+
+# Aplicar la transformación de raíz cuadrada para garantizar la euclideidad
+sqrt_dissimilarity_matrix <- sqrt(dissimilarity_matrix)
+
+# Realizar el análisis de conglomerados jerárquico con el método de Ward
+# Nota: hclust() requiere un objeto de clase "dist"
+hc_ward <- hclust(as.dist(sqrt_dissimilarity_matrix), method = "ward.D2")
+
+# Dibujar el dendrograma
+plot(hc_ward, main = "Dendrograma del análisis jerárquico (Ward)", 
+     sub = "", xlab = "Muestras", cex = 0.8, hang = -1)
+
+
+```
+En el dendograma se aprecia la creación de 3 grandes grupos. Estas 3 grandes agrupaciones concuerdan con el anterior cluster plot donde también se generan 3 grandes agrupaciones en las que se pueden clasificar todas las muestras.
+
+```{r, echo=FALSE,fig.width=10, fig.height=10,warning=FALSE,message=FALSE}
+heatmap(as.matrix(dissimilarity_matrix),
+        distfun = function(x) as.dist(sqrt(as.matrix(vegdist(x, method = "bray")))), # Función para calcular la disimilitud
+        hclustfun = function(x) hclust(x, method = "ward.D2"), # Método de clustering (Ward)
+        col = colorRampPalette(c("blue", "white"))(100), # Escala de colores
+        scale = "none", # No reescalar los datos
+        main = "Heatmap del análisis jerárquico de Bray-Curtis",
+        xlab = "Muestras", # Etiqueta eje X
+        ylab = "Muestras",
+        Rowv = NA,         # No reordenar las filas
+        Colv = NA,
+        ) # Etiqueta eje Y
+```
+
+El heatmap sirve para poder comparar muestras y discernir visualmente mediante una escala de colores cuales se parecen más (azul) y cuales se parecen menos (blanco) entre ellas. Esto tambien permite crear agrupaciones en nuestras muestras mediante colores.
+
+Por ejemplo en el heatmap podemos ver que las muestras 47 y 48 son parecidas a las muestras 61 y 62, si observamos la composición de árboles de las muestras 47vs61 y 48vs62 podemos ver que es bastante parecida con una gran predominancia de 'carcar', 'liqsty' y 'quemic'.
+
+
+### F)
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+library(factoextra)
+library(vegan)
+library(fpc)
+
+# Calcular la disimilitud de Bray-Curtis y luego aplicar la raíz cuadrada
+dissimilarity_matrix <- vegdist(sqrt(as.matrix(selected_data)), method = "bray")
+
+# Realizar el análisis jerárquico
+hc <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Determinar el número óptimo de clusters usando el criterio de las siluetas
+fviz_nbclust(selected_data, 
+             FUNcluster = hcut,           # Usamos hcut para cortar el dendrograma
+             method = "silhouette",       # Criterio de las siluetas
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+```
+
+Con el metodo silhouette se observa claramente que el número óptimo de clusters es 3, tal y como indica el cluster plot del apartado D.
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+library(factoextra)
+library(vegan)
+
+# Calcular la disimilitud de Bray-Curtis y luego aplicar la raíz cuadrada
+dissimilarity_matrix <- vegdist(sqrt(as.matrix(selected_data)), method = "bray")
+
+# Realizar el análisis jerárquico
+hc <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Determinar el número óptimo de clusters usando el criterio WSS (Suma de cuadrados dentro de los grupos)
+fviz_nbclust(selected_data, 
+             FUNcluster = hcut,           # Usamos hcut para cortar el dendrograma
+             method = "wss",              # Criterio de la suma de cuadrados dentro de los grupos
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+```
+
+Con el método WSS no está tan claro cual es el número óptimo de clústers, ya que el gráfico no muestra ningún codo claro donde el total within sum of square caiga drásticamente.
+
+### G)
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+# Determinar el número óptimo de clusters usando el criterio de las siluetas con PAM
+fviz_nbclust(selected_data, 
+             FUNcluster = pam,            # Usamos PAM para el clustering
+             method = "silhouette",       # Criterio de las siluetas
+             diss = dissimilarity_matrix, # Usar la matriz de disimilitud
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+```
+
+Con el método PAM el número óptimo de conglomerados es de 2 conglomerados.
+
+Los 3 criterios anteriores han dado respuestas diferentes, con lo que no podemos conluir que haya un número claro de conglomerados óptimo para clusterizar los datos con la información que disponemos ahora. Hacen falta análisis más profundos o disponer de algún criterio experto para poder determinar con certeza cuál es el mejor número de clústeres.
+
+### H)
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+# Realizar el análisis jerárquico (ward.D2)
+dendrogram <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Dibujar el dendrograma con la partición de 6 grupos
+plot(dendrogram, main = "Dendrograma con 6 clusters", xlab = "Muestras", ylab = "Distancia")
+rect.hclust(dendrogram, k = 6, border = "red")  # Añadir rectángulos para marcar los 6 clusters
+
+```
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+library(vegan)
+
+# Asegúrate de que los datos sean numéricos
+species_frequency_table <- as.data.frame(sapply(selected_data, as.numeric))
+
+# Dividir las muestras en 6 clusters
+cluster_assignment <- cutree(dendrogram, k = 6)
+
+# Calcular las medianas por especie en cada cluster
+# Usar tapply para calcular la mediana por cada especie (columna) en cada cluster
+medians_by_cluster <- apply(species_frequency_table, 2, function(x) tapply(x, cluster_assignment, median))
+
+# Crear una tabla de medianas
+medians_table <- data.frame(medians_by_cluster)
+
+# Imprimir la tabla de medianas
+#print(medians_table)
+
+
+# Filtrar especies con mediana <= 4 en todos los clusters
+medians_filtered <- medians_table[, colSums(medians_table <= 4) != nrow(medians_table)]
+
+print(medians_filtered)
+
+# Realizar el análisis de correspondencias (CA) con la tabla filtrada
+ca_result <- cca(medians_filtered)
+
+# Mostrar los resultados del análisis
+summary(ca_result)
+
+ordiplot(ca_result, type = "text", main = "Gráfico Asimétrico del Análisis de Correspondencia")
+
+```
+
+El análisis de correspondencias nos muestra como se agrupan las variables en función la mediana de las frecuencias en los 6 conglomerados. Podemos observar que las variables con una menor distancia en el gráfico son 'faggra' y 'maggra'. Lo cual sugiere que su composición de medianas de las frecuencias en los conglomerados son las más parecidas de entre todo el conjunto de datos.
+
+## ANNEXOS
+
+### Ejercicio 1
+
+#### A)
+
+```{r,warning=FALSE,eval=FALSE}
+# Especificamos path
+file_path <- "MERCBASS.txt"
+
+# Cargamos los datos
+df <- read.delim(file_path, header = TRUE, sep = "\t")
+
+# Visualizamos
+head(df)
+```
+
+#### B)
+
+```{r,warning=FALSE,eval=FALSE}
+# Calcular el número total de lagos
+total_lagos <- nrow(df)
+
+# Contar los lagos con Avg Mercury > 0.5
+lagos_no_saludables <- sum(df$Avg.Mercury > 0.5)
+
+# Calcular el porcentaje
+porcentaje_no_saludables <- (lagos_no_saludables / total_lagos) * 100
+
+# Mostrar resultados
+cat("Porcentaje de lagos con niveles no saludables de mercurio:", porcentaje_no_saludables, "%\n")
+```
+
+#### C)
+
+```{r, warning=FALSE,eval=FALSE}
+# Seleccionar las variables de interés
+variables_interes <- df[, c("Alkalinity", "pH", "Calcium", "Chlorophyll", "Avg.Mercury")]
+
+# Crear la matriz de diagramas de dispersión
+pairs(variables_interes, main = "Relación entre variables químicas y concentración de mercurio",
+      pch = 19, col = "blue")
+
+
+plot(df$Alkalinity, df$Avg.Mercury, main="Relación entre Alkalinity y Avg Mercury", 
+     xlab="Alkalinity (mg/l)", ylab="Avg Mercury (ppm)", pch=19)
+abline(lm(Avg.Mercury ~ Alkalinity, data=df), col="red")  # Línea de regresión
+```
+
+#### D)
+
+```{r,warning=FALSE,eval=FALSE}
+library(rcompanion)
+# Seleccionar las variables químicas y la concentración de mercurio
+variables <- df[, c("Alkalinity", "pH", "Calcium", "Chlorophyll", "Avg.Mercury")]
+
+# Transformar cada variable con Tukey
+variables_trans <- as.data.frame(lapply(variables, function(x) {
+  if (is.numeric(x)) {
+    transformTukey(x, plotit = FALSE)  # Aplicar la transformación sin graficar
+  } else {
+    x  # Si no es numérica, mantenerla igual
+  }
+}))
+
+# Renombrar columnas para identificarlas como transformadas
+colnames(variables_trans) <- paste0(colnames(variables), "_trans")
+
+# Seleccionar las variables de interés
+variables_interes_trans <- variables_trans[, c("Alkalinity_trans", "pH_trans", "Calcium_trans", "Chlorophyll_trans", "Avg.Mercury_trans")]
+
+# Crear la matriz de diagramas de dispersión
+pairs(variables_interes_trans, main = "Relación entre variables químicas y concentración de mercurio",
+      pch = 19, col = "blue")
+```
+
+#### E)
+
+```{r,warning=FALSE,eval=FALSE}
+library(rcompanion)
+
+# Transformar las variables químicas (X1, X2, X3, X4) y las de mercurio (Y1, Y2, Y3)
+variables_transformadas <- data.frame(
+  X1 = transformTukey(df$Alkalinity, plotit = FALSE),
+  X2 = transformTukey(df$pH, plotit = FALSE),
+  X3 = transformTukey(df$Calcium, plotit = FALSE),
+  X4 = transformTukey(df$Chlorophyll, plotit = FALSE),
+  Y1 = transformTukey(df$Min, plotit = FALSE),
+  Y2 = transformTukey(df$Avg.Mercury, plotit = FALSE),
+  Y3 = transformTukey(df$Max, plotit = FALSE)
+)
+
+# Calcular la matriz de centrado H
+n <- nrow(variables_transformadas)  # Número de observaciones
+H <- diag(n) - (1 / n) * matrix(1, n, n)  # Matriz de centrado
+
+# Centrar las variables manualmente (restar la media de cada columna)
+variables_centradas <- scale(variables_transformadas, center = TRUE, scale = FALSE)
+
+# Calcular la matriz de varianzas-covarianzas manualmente
+var_cov_manual <- (1 / (n - 1)) * t(variables_centradas) %*% variables_centradas
+
+# Comparar con la función cov()
+var_cov_func <- cov(variables_transformadas)
+
+# Verificar si los resultados coinciden
+all.equal(var_cov_manual, var_cov_func)
+```
+
+#### F)
+
+```{r, warning=FALSE,eval=FALSE}
+# Cálculo de las medias
+media_X <- colMeans(variables_transformadas[, 1:4])  # Medias de X1, X2, X3, X4
+media_Y <- colMeans(variables_transformadas[, 5:7])  # Medias de Y1, Y2, Y3
+
+# Cálculo de las varianzas
+var_X <- apply(variables_transformadas[, 1:4], 2, var)  # Varianzas de X1, X2, X3, X4
+var_Y <- apply(variables_transformadas[, 5:7], 2, var)  # Varianzas de Y1, Y2, Y3
+
+# Cálculo de las covarianzas
+cov_X <- cov(variables_transformadas[, 1:4])  # Covarianzas entre X1, X2, X3, X4
+cov_Y <- cov(variables_transformadas[, 5:7])  # Covarianzas entre Y1, Y2, Y3
+cov_XY <- cov(variables_transformadas[, 1:4], variables_transformadas[, 5:7])  # Covarianzas entre X y Y
+
+# Cálculo de la media de U y V
+# U = 0.4*X1 + 0.2*X2 + 0.2*X3 + 0.2*X4
+# V = (Y1 + Y2 + Y3) / 3
+mu_U <- 0.4 * media_X[1] + 0.2 * media_X[2] + 0.2 * media_X[3] + 0.2 * media_X[4]
+mu_V <- (media_Y[1] + media_Y[2] + media_Y[3]) / 3
+
+# Cálculo de la varianza de U
+var_U <- 0.4^2 * var_X[1] + 0.2^2 * var_X[2] + 0.2^2 * var_X[3] + 0.2^2 * var_X[4] +
+  2 * (0.4 * 0.2 * cov_X[1, 2] + 0.4 * 0.2 * cov_X[1, 3] + 0.4 * 0.2 * cov_X[1, 4] +
+  0.2 * 0.2 * cov_X[2, 3] + 0.2 * 0.2 * cov_X[2, 4] + 0.2 * 0.2 * cov_X[3, 4])
+
+# Cálculo de la varianza de V
+var_V <- (1/9) * (var_Y[1] + var_Y[2] + var_Y[3] + 2 * (cov_Y[1, 2] + cov_Y[1, 3] + cov_Y[2, 3]))
+
+# Cálculo de la covarianza entre U y V
+cov_UV <- (1/3) * (0.4 * cov_XY[1, 1] + 0.4 * cov_XY[1, 2] + 0.4 * cov_XY[1, 3] +
+                  0.2 * cov_XY[2, 1] + 0.2 * cov_XY[2, 2] + 0.2 * cov_XY[2, 3] +
+                  0.2 * cov_XY[3, 1] + 0.2 * cov_XY[3, 2] + 0.2 * cov_XY[3, 3] +
+                  0.2 * cov_XY[4, 1] + 0.2 * cov_XY[4, 2] + 0.2 * cov_XY[4, 3])
+
+# Cálculo de la correlación entre U y V
+corr_UV <- cov_UV / sqrt(var_U * var_V)
+
+# Resultados
+cat("Media de U: ", mu_U, "\n")
+cat("Media de V: ", mu_V, "\n")
+cat("Varianza de U: ", var_U, "\n")
+cat("Varianza de V: ", var_V, "\n")
+cat("Correlación entre U y V: ", corr_UV, "\n")
+
+```
+
+#### G)
+
+```{r,warning=FALSE,eval=FALSE}
+#Quitamos ph neutro de los datasets
+
+indices_ph_7 <- which(df$pH == 7)
+df_sin_ph_7 <- df[-indices_ph_7, ]
+variables_transformadas_sin_ph_7 <- variables_transformadas[-indices_ph_7, ]
+
+
+# Clasificar los valores de pH según la condición
+variables_transformadas_sin_ph_7$pH_grupo <- ifelse(df_sin_ph_7$pH < 7, "Ácido", #detectamos ph en el df_sin_ph_7 y aplicamos cambios
+                      ifelse(df_sin_ph_7$pH > 7, "Alcalino", NA))                 #en variables transformadas
+
+
+# usar pivot_longer para transformar las columnas Y1, Y2, Y3 a un formato largo
+library(tidyr)
+
+# Transformamos el dataframe a formato largo
+data_larga <- variables_transformadas_sin_ph_7 %>%
+  pivot_longer(cols = c("Y1", "Y2", "Y3"), 
+               names_to = "variable", 
+               values_to = "value")
+
+# Verificamos el resultado
+#head(data_larga)
+
+# Graficar el boxplot múltiple comparando los valores de Y1, Y2, Y3 entre los grupos Ácido y Alcalino
+boxplot(value ~ pH_grupo * variable, 
+        data = data_larga,
+        main = "Comparación de Y1, Y2, Y3 entre lagos ácidos y alcalinos",
+        xlab = "Grupo de pH y Variable", 
+        ylab = "Valor de las Variables",
+        col = c("lightblue", "lightgreen"), 
+        las = 1)
+
+```
+
+#### H)
+
+```{r,warning=FALSE,eval=FALSE}
+library(MVN)
+library(ggplot2)
+library(ggpubr)
+
+# Lista de variables a analizar
+variables <- c("Y1", "Y2", "Y3")
+
+# Crear QQ-Plots para cada variable en los grupos Ácido y Alcalino
+plots <- list()
+for (var in variables) {
+  plot_acido <- ggqqplot(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Ácido"], 
+                         main = paste("QQ-Plot", var, "(Ácidos)"))
+  plot_alcalino <- ggqqplot(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Alcalino"], 
+                            main = paste("QQ-Plot", var, "(Alcalinos)"))
+  plots <- c(plots, list(plot_acido, plot_alcalino))
+}
+
+# Mostrar los QQ-Plots en una cuadrícula
+ggarrange(plotlist = plots, ncol = 2, nrow = length(variables))
+```
+
+```{r,warning=FALSE,eval=FALSE}
+# Lista de variables a analizar
+variables <- c("Y1", "Y2", "Y3")  # Agrega aquí todas las variables relevantes
+
+# Crear una lista para almacenar los resultados
+resultados_shapiro <- list()
+
+# Test de Shapiro-Wilk para cada variable en cada grupo
+for (var in variables) {
+  resultado_acido <- shapiro.test(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Ácido"])
+  resultado_alcalino <- shapiro.test(variables_transformadas_sin_ph_7[[var]][variables_transformadas_sin_ph_7$pH_grupo == "Alcalino"])
+  
+  # Guardar los resultados en una lista
+  resultados_shapiro[[paste(var, "Ácido", sep = "_")]] <- resultado_acido
+  resultados_shapiro[[paste(var, "Alcalino", sep = "_")]] <- resultado_alcalino
+}
+
+# Mostrar los resultados
+for (nombre in names(resultados_shapiro)) {
+  cat("\nResultados para", nombre, ":\n")
+  print(resultados_shapiro[[nombre]])
+}
+
+```
+
+```{r,warning=FALSE,eval=FALSE}
+# Filtrar los datos para los grupos "Ácido" y "Alcalino"
+data_acido <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")]
+data_alcalino <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")]
+
+# Realizar el análisis de normalidad multivariante para el grupo Ácido
+resultados_mvn_acido <- mvn(data = data_acido)
+resultados_mvn_acido
+
+# Realizar el análisis de normalidad multivariante para el grupo Alcalino
+resultados_mvn_alcalino <- mvn(data = data_alcalino)
+resultados_mvn_alcalino
+```
+
+```{r,warning=FALSE,eval=FALSE}
+# Calcular la matriz de covarianzas y medias de las variables
+mean_vals <- colMeans(variables_transformadas_sin_ph_7[, c("Y1", "Y2", "Y3")])
+cov_matrix <- cov(variables_transformadas_sin_ph_7[, c("Y1", "Y2", "Y3")])
+
+# Calcular las distancias de Mahalanobis para los grupos Ácidos y Alcalinos
+mahal_ácidos <- mahalanobis(
+  variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")],
+  center = mean_vals,
+  cov = cov_matrix
+)
+
+mahal_alcalinos <- mahalanobis(
+  variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")],
+  center = mean_vals,
+  cov = cov_matrix
+)
+
+# Graficar los QQ-plots de las distancias de Mahalanobis
+# Ácidos
+qqplot(
+  qchisq(ppoints(length(mahal_ácidos)), df = 3), mahal_ácidos,
+  main = "QQ-Plot Mahalanobis Distances (Ácidos)",
+  xlab = "Teórica Chi-cuadrado",
+  ylab = "Distancias Mahalanobis"
+)
+abline(0, 1, col = "red", lwd = 2)  # Agregar la línea diagonal
+
+# Alcalinos
+qqplot(
+  qchisq(ppoints(length(mahal_alcalinos)), df = 3), mahal_alcalinos,
+  main = "QQ-Plot Mahalanobis Distances (Alcalinos)",
+  xlab = "Teórica Chi-cuadrado",
+  ylab = "Distancias Mahalanobis"
+)
+abline(0, 1, col = "red", lwd = 2)  # Agregar la línea diagonal
+
+```
+
+
+
+
+#### I)
+
+```{r,warning=FALSE,eval=FALSE}
+library(heplots)
+
+# Nos aseguramos de que 'pH_grupo' sea un factor
+variables_transformadas_sin_ph_7$pH_grupo <- as.factor(variables_transformadas_sin_ph_7$pH_grupo)
+
+# test M de Box
+test_m_box <- boxM(cbind(Y1, Y2, Y3) ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+test_m_box
+
+```
+
+
+```{r,warning=FALSE,eval=FALSE}
+#El test de levene multivariado da un error persistente que no me permite avanzar, para realizar las comparaciones haré el test de levene univariado para las 3 variables
+
+library(car)
+
+# Test de Levene multivariado
+#levene_test <- leveneTest(cbind(Y1, Y2, Y3) ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+#print(levene_test)
+
+
+
+# Test de Levene para cada variable por separado
+levene_test_Y1 <- leveneTest(Y1 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+levene_test_Y2 <- leveneTest(Y2 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+levene_test_Y3 <- leveneTest(Y3 ~ pH_grupo, data = variables_transformadas_sin_ph_7)
+
+# Imprimir resultados
+print(levene_test_Y1)
+print(levene_test_Y2)
+print(levene_test_Y3)
+
+```
+
+#### J)
+
+```{r,warning=FALSE,eval=FALSE}
+library(ICSNP)
+library(Hotelling)
+
+# Filtrar los datos para los grupos Ácido y Alcalino
+grupo_acido <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Ácido", c("Y1", "Y2", "Y3")]
+grupo_alcalino <- variables_transformadas_sin_ph_7[variables_transformadas_sin_ph_7$pH_grupo == "Alcalino", c("Y1", "Y2", "Y3")]
+
+# Realizar el test de Hotelling T²
+hotelling_test <- hotelling.test(grupo_acido, grupo_alcalino)
+print(hotelling_test)
+```
+
+```{r,warning=FALSE,eval=FALSE}
+library(perm)
+
+# Crear una función de permutación para la comparación multivariante
+perm_test_multivariante <- function(grupo1, grupo2, num_permutaciones = 100000) {
+  # Calcular la diferencia de medias observada utilizando la norma de la diferencia de medias
+  diff_observada <- sqrt(sum((colMeans(grupo1) - colMeans(grupo2))^2))
+  
+  # Realizar las permutaciones
+  diferencias_permutadas <- replicate(num_permutaciones, {
+    # Permutar las filas de los dos grupos y recalcular la diferencia de medias
+    datos_permutados <- rbind(grupo1, grupo2)
+    indices_permutados <- sample(1:nrow(datos_permutados))
+    grupo1_permutado <- datos_permutados[indices_permutados[1:nrow(grupo1)], ]
+    grupo2_permutado <- datos_permutados[indices_permutados[(nrow(grupo1)+1):nrow(datos_permutados)], ]
+    sqrt(sum((colMeans(grupo1_permutado) - colMeans(grupo2_permutado))^2))
+  })
+  
+  # Calcular el valor p
+  p_value <- mean(diferencias_permutadas >= diff_observada)
+  return(p_value)
+}
+
+# Realizar el test de permutaciones
+p_value_permutaciones <- perm_test_multivariante(grupo_acido, grupo_alcalino)
+print(p_value_permutaciones)
+
+```
+
+### Ejercicio 2
+
+#### A)
+
+```{r,warning=FALSE,eval=FALSE}
+data <- read.csv("wood.csv", sep=",")
+selected_data <- data[c("carcar", "corflo", "faggra", "ileopa", "liqsty", 
+                        "maggra", "nyssyl", "ostvir", "oxyarb", "pingla", 
+                        "quenig", "quemic", "symtin")]
+
+# Ver las primeras filas del dataset seleccionado
+head(selected_data)
+```
+
+#### D)
+
+```{r,warning=FALSE,eval=FALSE}
+library(factoextra)
+
+# Calcular el estadístico de Hopkins
+clust_tendency <- get_clust_tendency(selected_data, n = nrow(selected_data) - 1, graph = TRUE)
+
+# Mostrar el valor del estadístico de Hopkins
+cat("Estadístico de Hopkins:", clust_tendency$hopkins_stat, "\n")
+
+library(factoextra)
+set.seed(123)  # Para reproducibilidad
+
+# Normalizar los datos 
+scaled_data <- scale(selected_data)
+
+# Aplicar k-means con 3 clusters (puedes ajustar este número)
+km_res <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Visualizar los clusters
+fviz_cluster(list(data = scaled_data, cluster = km_res$cluster),
+             ellipse.type = "norm",  # Tipo de elipse para los grupos
+             geom = "point",         # Visualizar puntos
+             stand = FALSE,          # No volver a estandarizar
+             palette = "jco",        # Paleta de colores
+             ggtheme = theme_classic())  # Tema gráfico clásico
+```
+
+#### E)
+
+```{r,warning=FALSE,eval=FALSE}
+# Cargar los paquetes necesarios
+library(vegan)
+library(cluster)
+
+# Calcular la matriz de disimilitud de Bray-Curtis
+dissimilarity_matrix <- vegdist(selected_data, method = "bray")
+
+# Aplicar la transformación de raíz cuadrada para garantizar la euclideidad
+sqrt_dissimilarity_matrix <- sqrt(dissimilarity_matrix)
+
+# Realizar el análisis de conglomerados jerárquico con el método de Ward
+# Nota: hclust() requiere un objeto de clase "dist"
+hc_ward <- hclust(as.dist(sqrt_dissimilarity_matrix), method = "ward.D2")
+
+# Dibujar el dendrograma
+plot(hc_ward, main = "Dendrograma del análisis jerárquico (Ward)", 
+     sub = "", xlab = "Muestras", cex = 0.8, hang = -1)
+
+heatmap(dissimilarity_matrix,
+        distfun = function(x) as.dist(sqrt(as.matrix(vegdist(x, method = "bray")))), # Función para calcular la disimilitud
+        hclustfun = function(x) hclust(x, method = "ward.D2"), # Método de clustering (Ward)
+        col = colorRampPalette(c("blue", "white"))(100), # Escala de colores
+        scale = "none", # No reescalar los datos
+        main = "Heatmap del análisis jerárquico de Bray-Curtis",
+        xlab = "Especies", # Etiqueta eje X
+        ylab = "Muestras",
+        Rowv = NA,         # No reordenar las filas
+        Colv = NA,
+        ) # Etiqueta eje Y
+```
+
+#### F)
+
+```{r,warning=FALSE,eval=FALSE}
+library(factoextra)
+library(vegan)
+library(fpc)
+
+# Calcular la disimilitud de Bray-Curtis y luego aplicar la raíz cuadrada
+dissimilarity_matrix <- vegdist(sqrt(as.matrix(selected_data)), method = "bray")
+
+# Realizar el análisis jerárquico
+hc <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Determinar el número óptimo de clusters usando el criterio de las siluetas
+fviz_nbclust(selected_data, 
+             FUNcluster = hcut,           # Usamos hcut para cortar el dendrograma
+             method = "silhouette",       # Criterio de las siluetas
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+library(factoextra)
+library(vegan)
+
+# Calcular la disimilitud de Bray-Curtis y luego aplicar la raíz cuadrada
+dissimilarity_matrix <- vegdist(sqrt(as.matrix(selected_data)), method = "bray")
+
+# Realizar el análisis jerárquico
+hc <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Determinar el número óptimo de clusters usando el criterio WSS (Suma de cuadrados dentro de los grupos)
+fviz_nbclust(selected_data, 
+             FUNcluster = hcut,           # Usamos hcut para cortar el dendrograma
+             method = "wss",              # Criterio de la suma de cuadrados dentro de los grupos
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+# Determinar el número óptimo de clusters usando el criterio de las siluetas con PAM
+fviz_nbclust(selected_data, 
+             FUNcluster = pam,            # Usamos PAM para el clustering
+             method = "silhouette",       # Criterio de las siluetas
+             diss = dissimilarity_matrix, # Usar la matriz de disimilitud
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+```
+
+#### G)
+
+```{r,warning=FALSE,eval=FALSE}
+# Determinar el número óptimo de clusters usando el criterio de las siluetas con PAM
+fviz_nbclust(selected_data, 
+             FUNcluster = pam,            # Usamos PAM para el clustering
+             method = "silhouette",       # Criterio de las siluetas
+             diss = dissimilarity_matrix, # Usar la matriz de disimilitud
+             k.max = 10,                 # Máximo número de clusters a probar
+             linecolor = "blue")         # Color de la línea
+
+```
+
+#### H)
+
+```{r,warning=FALSE,eval=FALSE}
+# Realizar el análisis jerárquico (ward.D2)
+dendrogram <- hclust(dissimilarity_matrix, method = "ward.D2")
+
+# Dibujar el dendrograma con la partición de 6 grupos
+plot(dendrogram, main = "Dendrograma con 6 clusters", xlab = "Muestras", ylab = "Distancia")
+rect.hclust(dendrogram, k = 6, border = "red")  # Añadir rectángulos para marcar los 6 clusters
+
+library(vegan)
+
+# Asegúrate de que los datos sean numéricos
+species_frequency_table <- as.data.frame(sapply(selected_data, as.numeric))
+
+# Dividir las muestras en 6 clusters
+cluster_assignment <- cutree(dendrogram, k = 6)
+
+# Calcular las medianas por especie en cada cluster
+# Usar tapply para calcular la mediana por cada especie (columna) en cada cluster
+medians_by_cluster <- apply(species_frequency_table, 2, function(x) tapply(x, cluster_assignment, median))
+
+# Crear una tabla de medianas
+medians_table <- data.frame(medians_by_cluster)
+
+# Imprimir la tabla de medianas
+#print(medians_table)
+
+
+# Filtrar especies con mediana <= 4 en todos los clusters
+medians_filtered <- medians_table[, colSums(medians_table <= 4) != nrow(medians_table)]
+
+print(medians_filtered)
+
+# Realizar el análisis de correspondencias (CA) con la tabla filtrada
+ca_result <- cca(medians_filtered)
+
+# Mostrar los resultados del análisis
+summary(ca_result)
+
+ordiplot(ca_result, type = "text", main = "Gráfico Asimétrico del Análisis de Correspondencia")
+```
+
+
